@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { site } from './data/site.js';
 import { projects, categories } from './data/projects.js';
@@ -116,6 +116,9 @@ export function Home() {
   const [activeCredentialItem, setActiveCredentialItem] = useState(null);
   const [activeCredentialIndex, setActiveCredentialIndex] = useState(0);
   const [isCredentialHovered, setIsCredentialHovered] = useState(false);
+  const [activeEduCard, setActiveEduCard] = useState(null);
+  const [expSortAscending, setExpSortAscending] = useState(true);
+  const [activeExpCardId, setActiveExpCardId] = useState(null);
 
   const experienceItems = [
     {
@@ -179,6 +182,10 @@ export function Home() {
       tags: ['Technology', 'Volunteering', 'Planning'],
     },
   ];
+
+  const displayedExperience = useMemo(() => {
+    return expSortAscending ? [...experienceItems].reverse() : experienceItems;
+  }, [expSortAscending, experienceItems]);
 
   const credentialItems = [
     {
@@ -310,28 +317,28 @@ export function Home() {
         'Completed a three-year certificate course in drawing and painting, focusing on visual composition, creativity and fine arts fundamentals. Participated in art exhibitions and creative workshops, including activities associated with Channel i.',
     },
   ];
-  
-useEffect(() => {
-  if (
-    isCredentialHovered ||
-    activeCredentialItem ||
-    credentialItems.length < 2
-  ) {
-    return;
-  }
 
-  const timer = window.setInterval(() => {
-    setActiveCredentialIndex((current) =>
-      (current + 1) % credentialItems.length
-    );
-  }, 4500);
+  useEffect(() => {
+    if (
+      isCredentialHovered ||
+      activeCredentialItem ||
+      credentialItems.length < 2
+    ) {
+      return;
+    }
 
-  return () => window.clearInterval(timer);
-}, [
-  isCredentialHovered,
-  activeCredentialItem,
-  credentialItems.length,
-]);
+    const timer = window.setInterval(() => {
+      setActiveCredentialIndex((current) =>
+        (current + 1) % credentialItems.length
+      );
+    }, 4500);
+
+    return () => window.clearInterval(timer);
+  }, [
+    isCredentialHovered,
+    activeCredentialItem,
+    credentialItems.length,
+  ]);
 
   return (
     <>
@@ -474,7 +481,6 @@ useEffect(() => {
               aria-labelledby="panel-heading-education"
             >
               <div className="ref-panel-heading-row">
-                <span className="ref-panel-index">01</span>
                 <div>
                   <h3 id="panel-heading-education" className="ref-panel-title">
                     Education
@@ -485,7 +491,20 @@ useEffect(() => {
 
               <div className="education-bent-stack" role="list" aria-label="Education milestones">
                 {/* 01. East West University */}
-                <div className="education-bent-card edu-bent-card-1" role="listitem">
+                <div
+                  className={`education-bent-card edu-bent-card-1 ${activeEduCard === 1 ? 'is-expanded is-active' : ''}`}
+                  role="button"
+                  tabIndex={0}
+                  aria-expanded={activeEduCard === 1}
+                  aria-label="East West University education details. Tap or click to expand or collapse"
+                  onClick={() => setActiveEduCard((prev) => (prev === 1 ? null : 1))}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setActiveEduCard((prev) => (prev === 1 ? null : 1));
+                    }
+                  }}
+                >
                   <div className="edu-card-glass-sheen" aria-hidden="true" />
                   <div className="edu-card-inner">
                     <div className="edu-card-topbar">
@@ -511,7 +530,20 @@ useEffect(() => {
                 </div>
 
                 {/* 02. Ideal School and College - HSC */}
-                <div className="education-bent-card edu-bent-card-2" role="listitem">
+                <div
+                  className={`education-bent-card edu-bent-card-2 ${activeEduCard === 2 ? 'is-expanded is-active' : ''}`}
+                  role="button"
+                  tabIndex={0}
+                  aria-expanded={activeEduCard === 2}
+                  aria-label="Ideal School and College HSC education details. Tap or click to expand or collapse"
+                  onClick={() => setActiveEduCard((prev) => (prev === 2 ? null : 2))}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setActiveEduCard((prev) => (prev === 2 ? null : 2));
+                    }
+                  }}
+                >
                   <div className="edu-card-glass-sheen" aria-hidden="true" />
                   <div className="edu-card-inner">
                     <div className="edu-card-topbar">
@@ -534,7 +566,20 @@ useEffect(() => {
                 </div>
 
                 {/* 03. Ideal School and College - SSC */}
-                <div className="education-bent-card edu-bent-card-3" role="listitem">
+                <div
+                  className={`education-bent-card edu-bent-card-3 ${activeEduCard === 3 ? 'is-expanded is-active' : ''}`}
+                  role="button"
+                  tabIndex={0}
+                  aria-expanded={activeEduCard === 3}
+                  aria-label="Ideal School and College SSC education details. Tap or click to expand or collapse"
+                  onClick={() => setActiveEduCard((prev) => (prev === 3 ? null : 3))}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setActiveEduCard((prev) => (prev === 3 ? null : 3));
+                    }
+                  }}
+                >
                   <div className="edu-card-glass-sheen" aria-hidden="true" />
                   <div className="edu-card-inner">
                     <div className="edu-card-topbar">
@@ -558,14 +603,13 @@ useEffect(() => {
               </div>
             </article>
 
-            {/* 02. Experience & Volunteering — Refined Overlapping Stacked Cards */}
+            {/* 02. Experience & Volunteering — Ascending Staircase Experience Layout */}
             <article
-              className="ref-panel-card ref-panel-card-experience visual-stack-panel"
+              className="ref-panel-card ref-panel-card-experience visual-stack-panel staircase-experience-panel"
               aria-labelledby="panel-heading-experience"
             >
               <div className="ref-panel-heading-row">
-                <span className="ref-panel-index">02</span>
-                <div>
+                <div className="experience-heading-group">
                   <h3 id="panel-heading-experience" className="ref-panel-title">
                     Experience &amp; Leadership
                   </h3>
@@ -573,70 +617,133 @@ useEffect(() => {
                     Community leadership, outreach &amp; initiative progression
                   </p>
                 </div>
+
+                <div className="staircase-sort-toggle" role="group" aria-label="Staircase order">
+                  <button
+                    type="button"
+                    className={`staircase-sort-btn ${expSortAscending ? 'is-active' : ''}`}
+                    onClick={() => setExpSortAscending(true)}
+                    aria-label="View career progression from early foundations to leadership"
+                  >
+                    Progression (2018 → 2025) ↑
+                  </button>
+                  <button
+                    type="button"
+                    className={`staircase-sort-btn ${!expSortAscending ? 'is-active' : ''}`}
+                    onClick={() => setExpSortAscending(false)}
+                    aria-label="View recent experience first"
+                  >
+                    Recent First ↓
+                  </button>
+                </div>
               </div>
 
-              <div className="experience-overlapping-stack" role="list" aria-label="Experience & Volunteering roles">
-                {experienceItems.map((item, idx) => (
-                  <div
-                    className={`experience-layered-card exp-layer-${idx + 1}`}
-                    key={item.title}
-                    role="listitem"
-                  >
-                    <div className="exp-layered-card-inner">
-                      <div className="exp-layered-top">
-                        <div className="exp-org-brand">
-                          {item.image ? (
-                            <img
-                              className="exp-org-logo"
-                              src={item.image}
-                              alt={item.imageAlt || item.organization}
-                              loading="lazy"
-                            />
-                          ) : (
-                            <div className="exp-org-logo-ph" aria-hidden="true">
-                              {item.organization.slice(0, 2).toUpperCase()}
-                            </div>
-                          )}
-                          <div className="exp-org-meta">
-                            <span className="exp-category-tag">{item.category}</span>
-                            <span className="exp-org-name">{item.organization}</span>
+              <div
+                className="experience-staircase-track"
+                role="list"
+                aria-label="Ascending Experience career staircase"
+              >
+                {displayedExperience.map((item, idx) => {
+                  const stepNumber = idx + 1;
+                  const isExpanded = activeExpCardId === item.title;
+                  return (
+                    <div
+                      className={`staircase-step-card staircase-step-${stepNumber} ${isExpanded ? 'is-expanded is-active' : ''}`}
+                      key={item.title}
+                      role="listitem"
+                      tabIndex={0}
+                      aria-expanded={isExpanded}
+                      aria-label={`${item.title} at ${item.organization}. Click or tap to expand`}
+                      onClick={() => setActiveExpCardId((prev) => (prev === item.title ? null : item.title))}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          setActiveExpCardId((prev) => (prev === item.title ? null : item.title));
+                        }
+                      }}
+                    >
+                      <div className="staircase-step-tread-accent" aria-hidden="true" />
+                      <div className="exp-card-media-side" aria-hidden="true">
+                        {item.image ? (
+                          <img
+                            className="exp-card-media-img exp-org-logo"
+                            src={item.image}
+                            alt={item.imageAlt || item.organization}
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div className="exp-card-media-ph exp-org-logo-ph" aria-hidden="true">
+                            {item.organization.slice(0, 2).toUpperCase()}
                           </div>
+                        )}
+                      </div>
+                      <div className="exp-layered-card-inner">
+                        <div className="exp-layered-top">
+                          <div className="exp-org-brand">
+                            <div className="exp-org-meta">
+                              <div className="staircase-step-meta-row">
+                                <span className="exp-category-tag">{item.category}</span>
+                              </div>
+                              <span className="exp-org-name">{item.organization}</span>
+                            </div>
+                          </div>
+
+                          {item.date && (
+                            <span className="exp-date-pill">{item.date}</span>
+                          )}
                         </div>
 
-                        {item.date && (
-                          <span className="exp-date-pill">{item.date}</span>
-                        )}
-                      </div>
+                        <div className="exp-layered-body">
+                          <h4 className="exp-role-title">{item.title}</h4>
+                          {isExpanded && item.description && (
+                            <p className="exp-description">{item.description}</p>
+                          )}
+                        </div>
 
-                      <div className="exp-layered-body">
-                        <h4 className="exp-role-title">{item.title}</h4>
-                        <p className="exp-description">{item.description}</p>
-                      </div>
-
-                      <div className="exp-layered-footer">
-                        {item.tags?.length > 0 && (
-                          <div className="exp-tags-cluster">
-                            {item.tags.map((tag) => (
-                              <span className="exp-tag-chip" key={tag}>
-                                {tag}
-                              </span>
-                            ))}
+                        {/* Inline expanded details when active */}
+                        {isExpanded && item.postUrl && (
+                          <div className="staircase-expanded-details">
+                            <a
+                              href={item.postUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="staircase-announcement-link"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              Official post announcement ↗
+                            </a>
                           </div>
                         )}
 
-                        <button
-                          type="button"
-                          className="exp-detail-trigger"
-                          onClick={() => setActiveExperienceItem(item)}
-                          aria-label={`View full details for ${item.title}`}
-                        >
-                          <span>View details</span>
-                          <span aria-hidden="true"> ↗</span>
-                        </button>
+                        <div className="exp-layered-footer">
+                          {item.tags?.length > 0 && (
+                            <div className="exp-tags-cluster">
+                              {item.tags.map((tag) => (
+                                <span className="exp-tag-chip" key={tag}>
+                                  {tag}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+
+                          <button
+                            type="button"
+                            className="exp-detail-trigger"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveExpCardId((prev) => (prev === item.title ? null : item.title));
+                            }}
+                            aria-expanded={isExpanded}
+                            aria-label={isExpanded ? `Hide details for ${item.title}` : `View details for ${item.title}`}
+                          >
+                            <span>{isExpanded ? 'View less' : 'View details'}</span>
+                            <span aria-hidden="true">{isExpanded ? ' ✕' : ' ↗'}</span>
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </article>
 
@@ -646,14 +753,10 @@ useEffect(() => {
               aria-labelledby="panel-heading-awards"
             >
               <div className="ref-panel-heading-row">
-                <span className="ref-panel-index">03</span>
                 <div>
                   <h3 id="panel-heading-awards" className="ref-panel-title">
                     Awards &amp; Certifications
                   </h3>
-                  <p className="ref-panel-kicker">
-                    Verified credentials, academic honors &amp; artistic recognitions
-                  </p>
                 </div>
               </div>
 
@@ -665,100 +768,98 @@ useEffect(() => {
               >
                 {credentialItems.length > 0 && (
                   <>
-                    {(() => {
-                      const item =
-                        credentialItems[activeCredentialIndex % credentialItems.length];
-
-                      return (
-                        <article
-                          className="credential-slide"
-                          key={activeCredentialIndex}
-                        >
-                          <div className="credential-slide-content">
-                            <div className="credential-slide-tags">
-                              <span className="visual-stack-eyebrow">
-                                {item.category}
-                              </span>
-                              {item.certificateType && (
-                                <span className="credential-type-pill">
-                                  {item.certificateType}
-                                </span>
-                              )}
-                            </div>
-
-                            <h4 className="credential-slide-title">{item.title}</h4>
-
-                            <p className="visual-stack-organization">
-                              <span className="cred-org-label">{item.organization}</span>
-                              {item.date ? (
-                                <span className="cred-date-label"> · {item.date}</span>
-                              ) : null}
-                            </p>
-
-                            {item.description && (
-                              <p className="credential-slide-desc">
-                                {item.description}
-                              </p>
-                            )}
-
-                            <div className="credential-actions-strip">
-                              <button
-                                type="button"
-                                className="ref-panel-cert-link"
-                                onClick={() => setActiveCredentialItem(item)}
-                              >
-                                View Details &amp; Verify ↗
-                              </button>
-                              {item.url && (
-                                <a
-                                  href={item.url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="credential-external-link"
-                                  onClick={(e) => e.stopPropagation()}
-                                >
-                                  External Link ↗
-                                </a>
-                              )}
-                            </div>
-                          </div>
-
-                          <div
-                            className="credential-slide-thumbnail-wrap"
-                            onClick={() => setActiveCredentialItem(item)}
-                            title="Click to view full certificate"
-                            role="button"
-                            tabIndex={0}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter' || e.key === ' ') {
-                                e.preventDefault();
-                                setActiveCredentialItem(item);
-                              }
-                            }}
+                    <div className="credential-cards-row" key={activeCredentialIndex}>
+                      {[0, 1, 2].map((offset) => {
+                        const item =
+                          credentialItems[
+                            (activeCredentialIndex + offset) % credentialItems.length
+                          ];
+                        return (
+                          <article
+                            className="credential-card"
+                            key={`${item.title}-${offset}`}
+                            style={{ '--card-stagger': offset }}
                           >
-                            {item.image ? (
-                              <div className="credential-image-frame">
-                                <img
-                                  src={item.image}
-                                  alt={`${item.title} certificate`}
-                                  className="credential-slide-img"
-                                  loading="lazy"
-                                />
-                                <span className="credential-zoom-hint" aria-hidden="true">
-                                  Click to enlarge ⤢
+                            <div
+                              className="credential-card-media"
+                              onClick={() => setActiveCredentialItem(item)}
+                              title="Click to view full certificate"
+                              role="button"
+                              tabIndex={0}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.preventDefault();
+                                  setActiveCredentialItem(item);
+                                }
+                              }}
+                            >
+                              {item.image ? (
+                                <div className="credential-image-frame">
+                                  <img
+                                    src={item.image}
+                                    alt={`${item.title} certificate`}
+                                    className="credential-slide-img"
+                                    loading="lazy"
+                                  />
+                                  <span className="credential-zoom-hint" aria-hidden="true">
+                                    Click to enlarge ⤢
+                                  </span>
+                                </div>
+                              ) : (
+                                <div className="credential-thumbnail-placeholder">
+                                  <span className="ph-icon" aria-hidden="true">📜</span>
+                                  <strong>{item.organization}</strong>
+                                  <span className="ph-hint">Official Academic Record</span>
+                                </div>
+                              )}
+                            </div>
+
+                            <div className="credential-card-body">
+                              <div className="credential-slide-tags">
+                                <span className="visual-stack-eyebrow">
+                                  {item.category}
                                 </span>
+                                {item.certificateType && (
+                                  <span className="credential-type-pill">
+                                    {item.certificateType}
+                                  </span>
+                                )}
                               </div>
-                            ) : (
-                              <div className="credential-thumbnail-placeholder">
-                                <span className="ph-icon" aria-hidden="true">📜</span>
-                                <strong>{item.organization}</strong>
-                                <span className="ph-hint">Official Academic Record</span>
+
+                              <h4 className="credential-card-title">{item.title}</h4>
+
+                              <p className="credential-card-org">
+                                <span className="cred-org-label">{item.organization}</span>
+                                {item.date ? (
+                                  <span className="cred-date-label"> · {item.date}</span>
+                                ) : null}
+                              </p>
+
+                              <div className="credential-actions-strip">
+                                <button
+                                  type="button"
+                                  className="ref-panel-cert-link"
+                                  onClick={() => setActiveCredentialItem(item)}
+                                >
+                                  View Details &amp; Verify ↗
+                                </button>
+                                {item.url && (
+                                  <a
+                                    href={item.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="credential-external-link"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    External Link ↗
+                                  </a>
+                                )}
                               </div>
-                            )}
-                          </div>
-                        </article>
-                      );
-                    })()}
+                            </div>
+                          </article>
+                        );
+                      })}
+                    </div>
 
                     <div className="credential-slide-controls">
                       <button
@@ -794,11 +895,10 @@ useEffect(() => {
                             <button
                               key={`credential-dot-${index}`}
                               type="button"
-                              className={`credential-dot ${
-                                index === activeCredentialIndex
+                              className={`credential-dot ${index === activeCredentialIndex
                                   ? "is-active"
                                   : ""
-                              }`}
+                                }`}
                               aria-label={`Show certificate ${index + 1}: ${item.title}`}
                               aria-current={
                                 index === activeCredentialIndex ? "true" : undefined
@@ -903,77 +1003,77 @@ useEffect(() => {
           </section>
         </div>
       )}
-      
-{/* Credential Details Modal */}
-{activeCredentialItem && (
-  <div
-    className="credential-preview-backdrop"
-    onClick={() => setActiveCredentialItem(null)}
-  >
-    <section
-      className="credential-preview-modal"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="credential-preview-title"
-      onClick={(event) => event.stopPropagation()}
-    >
-      <button
-        type="button"
-        className="credential-preview-close"
-        onClick={() => setActiveCredentialItem(null)}
-        aria-label="Close credential details"
-      >
-        ×
-      </button>
 
-      <span className="visual-stack-eyebrow">
-        {activeCredentialItem.category}
-      </span>
-
-      <h3 id="credential-preview-title">
-        {activeCredentialItem.title}
-      </h3>
-
-      <p>{activeCredentialItem.organization}</p>
-
-      {activeCredentialItem.date && (
-        <p>{activeCredentialItem.date}</p>
-      )}
-
-      {activeCredentialItem.certificateType && (
-        <p>{activeCredentialItem.certificateType}</p>
-      )}
-
-      {activeCredentialItem.description && (
-        <p className="credential-preview-description">
-          {activeCredentialItem.description}
-        </p>
-      )}
-
-      {activeCredentialItem.image && (
-        <img
-          className="credential-preview-image"
-          src={activeCredentialItem.image}
-          alt={`${activeCredentialItem.title} certificate`}
-          loading="lazy"
-        />
-      )}
-
-      {activeCredentialItem.url && (
-        <div className="credential-modal-links">
-          <a
-            href={activeCredentialItem.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="ref-panel-cert-link"
+      {/* Credential Details Modal */}
+      {activeCredentialItem && (
+        <div
+          className="credential-preview-backdrop"
+          onClick={() => setActiveCredentialItem(null)}
+        >
+          <section
+            className="credential-preview-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="credential-preview-title"
+            onClick={(event) => event.stopPropagation()}
           >
-            Certificate ↗
-          </a>
+            <button
+              type="button"
+              className="credential-preview-close"
+              onClick={() => setActiveCredentialItem(null)}
+              aria-label="Close credential details"
+            >
+              ×
+            </button>
+
+            <span className="visual-stack-eyebrow">
+              {activeCredentialItem.category}
+            </span>
+
+            <h3 id="credential-preview-title">
+              {activeCredentialItem.title}
+            </h3>
+
+            <p>{activeCredentialItem.organization}</p>
+
+            {activeCredentialItem.date && (
+              <p>{activeCredentialItem.date}</p>
+            )}
+
+            {activeCredentialItem.certificateType && (
+              <p>{activeCredentialItem.certificateType}</p>
+            )}
+
+            {activeCredentialItem.description && (
+              <p className="credential-preview-description">
+                {activeCredentialItem.description}
+              </p>
+            )}
+
+            {activeCredentialItem.image && (
+              <img
+                className="credential-preview-image"
+                src={activeCredentialItem.image}
+                alt={`${activeCredentialItem.title} certificate`}
+                loading="lazy"
+              />
+            )}
+
+            {activeCredentialItem.url && (
+              <div className="credential-modal-links">
+                <a
+                  href={activeCredentialItem.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="ref-panel-cert-link"
+                >
+                  Certificate ↗
+                </a>
+              </div>
+            )}
+          </section>
         </div>
       )}
-    </section>
-  </div>
-)}
 
 
       {/* 04. SKILLS SECTION */}

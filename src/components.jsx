@@ -1005,14 +1005,37 @@ export function NavAvatar({ src = '/images/portrait.jpg', onClick }) {
   );
 }
 
+function GitHubIcon({ size = 16, className = '' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
+      <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
+    </svg>
+  );
+}
+
+function BehanceIcon({ size = 16, className = '' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
+      <path d="M7.785 14.502h-3.41v-1.748h3.364c.594 0 1.04.103 1.337.311.297.208.446.526.446.953 0 .426-.149.744-.446.952-.297.208-.743.312-1.337.312zm-.31-3.238H4.375V9.69h3.048c.531 0 .937.094 1.218.281.281.188.422.469.422.844 0 .375-.141.656-.422.844-.281.187-.687.281-1.218.281zm5.176 1.637c-.015-1.24.281-2.229.89-2.969.609-.739 1.484-1.109 2.625-1.109 1.094 0 1.943.359 2.547 1.078.604.719.906 1.693.906 2.922 0 .094 0 .219-.015.375h-5.063c.031.781.286 1.375.766 1.781.479.406 1.094.609 1.844.609.672 0 1.25-.156 1.734-.469.484-.312.828-.75 1.031-1.312l1.641.656c-.344.891-.906 1.602-1.688 2.133-.781.531-1.703.797-2.766.797-1.328 0-2.391-.422-3.188-1.266-.796-.844-1.203-1.922-1.22-3.234l-.008.007zm3.484-2.5c-.562 0-1.026.167-1.391.5-.365.333-.578.802-.641 1.406h3.984c-.031-.609-.234-1.083-.609-1.422-.375-.338-.828-.484-1.344-.484zM2.438 7.375h5.531c1.234 0 2.219.297 2.953.891.734.594 1.102 1.406 1.102 2.438 0 .688-.172 1.281-.516 1.781-.344.5-.828.875-1.453 1.125.828.25 1.453.688 1.875 1.312.422.625.633 1.375.633 2.25 0 1.156-.406 2.078-1.219 2.766-.812.688-1.891 1.031-3.234 1.031H2.438V7.375zm12.469-.938h5.344v1.312h-5.344V6.437z"/>
+    </svg>
+  );
+}
+
 // -------------------------------------------------------------
 // CATEGORY PROJECTS MODAL
 // Interactive modal to explore real projects for the selected category.
-// Accessible with keyboard trap, Escape dismissal, and full links.
+// Displays category title & description, clear return buttons,
+// responsive cards with exact screenshots, titles, descriptions, and verified links.
 // -------------------------------------------------------------
 export function CategoryProjectModal({ categoryId, onClose }) {
-  const catInfo = categories[categoryId] || { label: 'Projects', blurb: '' };
-  const catProjects = projects.filter((p) => p.category === categoryId);
+  const [activeCat, setActiveCat] = useState(categoryId || 'software');
+
+  useEffect(() => {
+    if (categoryId) setActiveCat(categoryId);
+  }, [categoryId]);
+
+  const catInfo = categories[activeCat] || categories['software'];
+  const catProjects = projects.filter((p) => p.category === activeCat);
 
   useEffect(() => {
     const handleKey = (e) => {
@@ -1035,12 +1058,38 @@ export function CategoryProjectModal({ categoryId, onClose }) {
       aria-labelledby="cat-modal-title"
     >
       <div className="cat-modal-glass" onClick={(e) => e.stopPropagation()}>
-        <div className="cat-modal-header">
-          <div className="cat-modal-title-lockup">
-            <span className="cat-modal-tag">{catInfo.tag || 'WORK COLLECTION'}</span>
-            <h3 id="cat-modal-title" className="cat-modal-title">{catInfo.label}</h3>
-            <p className="cat-modal-blurb">{catInfo.blurb}</p>
+        {/* Top Controls Bar with Return Button & Category Navigation */}
+        <div className="cat-modal-controls-bar">
+          <button
+            type="button"
+            className="cat-modal-back-btn"
+            onClick={onClose}
+            aria-label="Return to category deck"
+          >
+            <span aria-hidden="true">←</span>
+            <span>Return to Categories</span>
+          </button>
+
+          <div className="cat-modal-category-pills" role="tablist" aria-label="Switch project collection">
+            {Object.values(categories).map((c) => {
+              const count = projects.filter((p) => p.category === c.id).length;
+              const isActive = c.id === activeCat;
+              return (
+                <button
+                  key={c.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={isActive}
+                  className={`cat-modal-pill ${isActive ? 'is-active' : ''}`}
+                  onClick={() => setActiveCat(c.id)}
+                >
+                  <span>{c.label}</span>
+                  <span className="cat-modal-pill-count">{count}</span>
+                </button>
+              );
+            })}
           </div>
+
           <button
             type="button"
             className="cat-modal-close"
@@ -1051,70 +1100,179 @@ export function CategoryProjectModal({ categoryId, onClose }) {
           </button>
         </div>
 
+        {/* Modal Header: Category title & description */}
+        <div className="cat-modal-header">
+          <div className="cat-modal-title-lockup">
+            <span className="cat-modal-tag">{catInfo.tag || 'PROJECT ARCHIVE'}</span>
+            <h2 id="cat-modal-title" className="cat-modal-title">{catInfo.label}</h2>
+            <p className="cat-modal-blurb">{catInfo.blurb}</p>
+          </div>
+        </div>
+
+        {/* Modal Body: Category-specific project displays */}
         <div className="cat-modal-body">
-          <div className="cat-modal-projects-grid">
-            {catProjects.map((p) => (
-              <article key={p.slug} className="cat-project-item">
-                <div className="cat-project-media">
-                  <Img
-                    src={p.cover}
-                    alt={p.coverAlt || p.title}
-                    ratio="16/10"
-                    category={p.category}
-                    label={p.title}
-                    className="cat-project-img"
-                  />
-                </div>
-                <div className="cat-project-info">
-                  <div className="cat-project-meta">
-                    <span className="cat-project-timeline">{p.timeline}</span>
-                    {p.status && <span className="cat-project-status">{p.status}</span>}
+          {activeCat === 'graphic' ? (
+            /* Canva Designs: 8 image-focused cards with derived readable titles */
+            <div className="cat-modal-designs-grid">
+              {catProjects.map((p, idx) => (
+                <article key={p.slug || idx} className="cat-design-card">
+                  <div className="cat-design-media" style={{ aspectRatio: p.aspectRatio || '1/1' }}>
+                    <img
+                      src={p.cover}
+                      alt={p.title}
+                      className="cat-design-img"
+                      loading="lazy"
+                      decoding="async"
+                    />
                   </div>
-                  <h4 className="cat-project-title">{p.title}</h4>
-                  <p className="cat-project-desc">{p.summary}</p>
-                  {p.tools && (
-                    <div className="cat-project-tools">
-                      {p.tools.slice(0, 4).map((t, i) => (
-                        <span key={i} className="cat-tool-pill">{t}</span>
-                      ))}
+                  <div className="cat-design-footer">
+                    <h3 className="cat-design-title">{p.title}</h3>
+                  </div>
+                </article>
+              ))}
+            </div>
+          ) : activeCat === 'sqa' ? (
+            /* SQA & Others: 2 repository cards with clickable titles & GitHub icons */
+            <div className="cat-modal-sqa-grid">
+              {catProjects.map((p) => (
+                <article key={p.slug} className="cat-sqa-card">
+                  <div className="cat-sqa-code-header">
+                    <div className="cat-sqa-term-dots" aria-hidden="true">
+                      <span className="term-dot red" />
+                      <span className="term-dot yellow" />
+                      <span className="term-dot green" />
                     </div>
-                  )}
-                  <div className="cat-project-actions">
-                    {p.repo && (
+                    <span className="cat-sqa-repo-tag">
+                      <GitHubIcon size={14} />
+                      <span>GITHUB REPOSITORY</span>
+                    </span>
+                  </div>
+
+                  <div className="cat-sqa-card-content">
+                    <h3 className="cat-sqa-card-title">
                       <a
                         href={p.repo}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="btn outline btn-sm"
-                        aria-label={`View ${p.title} code repository on GitHub`}
+                        className="cat-sqa-repo-link"
+                        aria-label={`Open ${p.title} on GitHub (opens in new tab)`}
                       >
-                        GitHub ↗
+                        <GitHubIcon size={18} className="cat-sqa-git-icon" />
+                        <span>{p.title}</span>
+                        <span className="cat-ext-arrow" aria-hidden="true">↗</span>
                       </a>
+                    </h3>
+
+                    <p className="cat-sqa-card-desc">{p.summary}</p>
+
+                    {p.tools && (
+                      <div className="cat-project-tools">
+                        {p.tools.map((t, i) => (
+                          <span key={i} className="cat-tool-pill">{t}</span>
+                        ))}
+                      </div>
                     )}
-                    {p.link && (
+
+                    <div className="cat-sqa-actions">
                       <a
-                        href={p.link}
+                        href={p.repo}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="btn outline btn-sm"
-                        aria-label={`View ${p.title} live link`}
+                        className="btn solid btn-sm cat-sqa-github-cta"
+                        aria-label={`View ${p.title} repository on GitHub`}
                       >
-                        Live / Behance ↗
+                        <GitHubIcon size={16} />
+                        <span>View Repository on GitHub</span>
+                        <span aria-hidden="true">↗</span>
                       </a>
-                    )}
-                    <Link
-                      to={`/work/${p.slug}`}
-                      className="btn solid btn-sm"
-                      onClick={onClose}
-                      aria-label={`Read ${p.title} full case study`}
-                    >
-                      Case Study ↗
-                    </Link>
+                    </div>
                   </div>
-                </div>
-              </article>
-            ))}
-          </div>
+                </article>
+              ))}
+            </div>
+          ) : (
+            /* Website Projects & UI/UX Projects */
+            <div className="cat-modal-projects-grid">
+              {catProjects.map((p) => (
+                <article key={p.slug} className="cat-project-item">
+                  <div className="cat-project-media">
+                    {p.cover ? (
+                      <img
+                        src={p.cover}
+                        alt={p.coverAlt || p.title}
+                        className="cat-project-img"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    ) : (
+                      <ArchitecturalPlaceholder category={p.category} label={p.title} ratio="16/10" />
+                    )}
+                  </div>
+                  <div className="cat-project-info">
+                    <h3 className="cat-project-title">{p.title}</h3>
+                    <p className="cat-project-desc">{p.summary}</p>
+                    {p.tools && (
+                      <div className="cat-project-tools">
+                        {p.tools.slice(0, 5).map((t, i) => (
+                          <span key={i} className="cat-tool-pill">{t}</span>
+                        ))}
+                      </div>
+                    )}
+                    <div className="cat-project-actions">
+                      {p.repo && (
+                        <a
+                          href={p.repo}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="btn outline btn-sm cat-btn-with-icon"
+                          aria-label={`View ${p.title} repository on GitHub`}
+                        >
+                          <GitHubIcon size={14} />
+                          <span>GitHub</span>
+                          <span aria-hidden="true">↗</span>
+                        </a>
+                      )}
+                      {p.link && (
+                        <a
+                          href={p.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="btn outline btn-sm cat-btn-with-icon"
+                          aria-label={`View ${p.title} external project`}
+                        >
+                          {p.category === 'uiux' ? <BehanceIcon size={14} /> : null}
+                          <span>{p.category === 'uiux' ? 'Behance' : 'Live Demo'}</span>
+                          <span aria-hidden="true">↗</span>
+                        </a>
+                      )}
+                      <Link
+                        to={`/work/${p.slug}`}
+                        className="btn solid btn-sm"
+                        onClick={onClose}
+                        aria-label={`Read ${p.title} full case study`}
+                      >
+                        Case Study ↗
+                      </Link>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Modal Footer Bar */}
+        <div className="cat-modal-footer">
+          <span className="cat-modal-footer-count">
+            Showing {catProjects.length} {catInfo.label}
+          </span>
+          <button
+            type="button"
+            className="btn outline btn-sm cat-modal-bottom-return"
+            onClick={onClose}
+          >
+            ← Return to Categories
+          </button>
         </div>
       </div>
     </div>
@@ -1122,20 +1280,27 @@ export function CategoryProjectModal({ categoryId, onClose }) {
 }
 
 // -------------------------------------------------------------
-// FOUR PRIMARY CATEGORY CARDS
-// Card 1: Website Projects (PortfolioBanao, CareShelf, Noor-e-verse)
-// Card 2: UI/UX Projects (MediLink, OneCitizen, ResumeXi, FinAlert)
-// Card 3: Canva Designs (EWUECC Posters, Stage Backdrops)
-// Card 4: Software Quality Assurance (OSTAD Assessment, Selenium CSE430)
+// FOUR PRIMARY CATEGORY CARDS — 4-CARD LAYERED CREST / T-DECK
+// Matches the user's hand-drawn crest composition:
+// - Front Center Card (foreground / active)
+// - Left & Right Flanking Cards (peeking symmetrically behind front card)
+// - Top Crest Card (elevated top center, peeking above front & flank cards)
+// Interactive 3D deck with instant category tabs and smooth slot transitions.
+// Card 1: Website Projects (Personal Portfolio, PortfolioBanao, CareShelf, Noor-e-verse, AttendAi)
+// Card 2: UI/UX Projects (OneCitizen, MediLink, ResumeXi, hide.me VPN, FinAlert)
+// Card 3: Canva Designs (8 authentic campus posters & event banners)
+// Card 4: SQA & Others (OSTAD Assessment, CS423 SOLID Query)
 // -------------------------------------------------------------
 export function FourCategoryCards({ onSelectCategory }) {
+  const [activeId, setActiveId] = useState('software');
+
   const fourCategories = [
     {
       id: 'software',
       title: 'Website Projects',
       desc: 'Full-stack web applications and software systems built with React, Node.js, Express, and clean architecture.',
-      previewLabel: 'PortfolioBanao Platform',
-      thumbnail: '/images/projects/website/portfoliobanao.png',
+      previewLabel: 'Personal Portfolio Website',
+      thumbnail: '/images/projects/website/arpa-portfolio.png',
       count: projects.filter((p) => p.category === 'software').length,
     },
     {
@@ -1156,60 +1321,131 @@ export function FourCategoryCards({ onSelectCategory }) {
     },
     {
       id: 'sqa',
-      title: 'Software Quality Assurance',
+      title: 'SQA & Others',
       desc: 'Automated testing suites, API testing via Postman/Newman, Selenium browser regression, and defect reports.',
-      previewLabel: 'OSTAD Automation & CSE430 Suite',
+      previewLabel: 'OSTAD Automation & CS423 Query',
       thumbnail: '',
       count: projects.filter((p) => p.category === 'sqa').length,
     },
   ];
 
-  return (
-    <div className="four-categories-grid" role="region" aria-label="Four Project Categories">
-      {fourCategories.map((cat, idx) => (
-        <article
-          key={cat.id}
-          className="category-glass-card"
-          onClick={() => onSelectCategory(cat.id)}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              onSelectCategory(cat.id);
-            }
-          }}
-          aria-label={`Open ${cat.title} collection (${cat.count} projects)`}
-        >
-          <div className="cat-card-preview-frame">
-            {cat.thumbnail ? (
-              <img
-                src={cat.thumbnail}
-                alt={`${cat.title} preview`}
-                className="cat-card-preview-img"
-                loading="lazy"
-                decoding="async"
-              />
-            ) : (
-              <ArchitecturalPlaceholder category={cat.id} label={cat.previewLabel} ratio="16/9" />
-            )}
-            <div className="cat-card-overlay" aria-hidden="true" />
-          </div>
+  const categoryOrder = ['software', 'uiux', 'graphic', 'sqa'];
+  const activeIdx = categoryOrder.indexOf(activeId);
 
-          <div className="cat-card-content">
-            <div className="cat-card-meta">
-              <span className="cat-card-num">0{idx + 1}</span>
-              <span className="cat-card-count">{cat.count} Projects</span>
-            </div>
-            <h3 className="cat-card-title">{cat.title}</h3>
-            <p className="cat-card-desc">{cat.desc}</p>
-            <div className="cat-card-cta">
-              <span>Explore Collection</span>
-              <span className="cat-cta-arrow" aria-hidden="true"> ↗</span>
-            </div>
-          </div>
-        </article>
-      ))}
+  const getSlot = (id) => {
+    const currentIdx = categoryOrder.indexOf(id);
+    const diff = (currentIdx - activeIdx + 4) % 4;
+    if (diff === 0) return 'front';
+    if (diff === 1) return 'right';
+    if (diff === 2) return 'top';
+    return 'left'; // diff === 3
+  };
+
+  return (
+    <div className="cat-deck-wrapper" role="region" aria-label="Four Core Project Categories">
+      {/* Category Navigation Pills */}
+      <div className="cat-deck-tabs" role="tablist" aria-label="Project Category Selection">
+        {fourCategories.map((cat) => {
+          const isActive = cat.id === activeId;
+          return (
+            <button
+              key={cat.id}
+              type="button"
+              role="tab"
+              aria-selected={isActive}
+              className={`cat-deck-tab ${isActive ? 'is-active' : ''}`}
+              onClick={() => setActiveId(cat.id)}
+            >
+              <span>{cat.title}</span>
+              <span className="cat-deck-tab-badge">{cat.count}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* 4-Card Layered Crest / T-Deck Stage */}
+      <div className="cat-deck-stage">
+        {fourCategories.map((cat, idx) => {
+          const slot = getSlot(cat.id);
+          const isFront = slot === 'front';
+
+          return (
+            <article
+              key={cat.id}
+              className={`category-deck-card category-glass-card is-slot-${slot}`}
+              onClick={() => {
+                if (isFront) {
+                  onSelectCategory(cat.id);
+                } else {
+                  setActiveId(cat.id);
+                }
+              }}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  if (isFront) {
+                    onSelectCategory(cat.id);
+                  } else {
+                    setActiveId(cat.id);
+                  }
+                }
+              }}
+              aria-label={`${cat.title} (${cat.count} projects)${isFront ? ' — Active front card, click to open collection' : ' — Click to bring to front'}`}
+            >
+              <div className="cat-card-preview-frame">
+                {cat.thumbnail ? (
+                  <img
+                    src={cat.thumbnail}
+                    alt={`${cat.title} preview`}
+                    className="cat-card-preview-img"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                ) : (
+                  <ArchitecturalPlaceholder category={cat.id} label={cat.previewLabel} ratio="16/9" />
+                )}
+                <div className="cat-card-overlay" aria-hidden="true" />
+
+                {!isFront && (
+                  <div className="cat-deck-slot-hint" aria-hidden="true">
+                    <span>Click to bring forward</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="cat-card-content">
+                <div className="cat-card-meta">
+                  <span className="cat-card-num">0{idx + 1}</span>
+                  <span className="cat-card-count">{cat.count} Projects</span>
+                </div>
+                <h3 className="cat-card-title">{cat.title}</h3>
+                <p className="cat-card-desc">{cat.desc}</p>
+                <div
+                  className="cat-card-cta"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onSelectCategory(cat.id);
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      onSelectCategory(cat.id);
+                    }
+                  }}
+                >
+                  <span>Explore Collection</span>
+                  <span className="cat-cta-arrow" aria-hidden="true"> ↗</span>
+                </div>
+              </div>
+            </article>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -1217,149 +1453,177 @@ export function FourCategoryCards({ onSelectCategory }) {
 // -------------------------------------------------------------
 // LAYERED 3D SKILL STACK
 // Distinct, overlapping 3D glass cards floating above the dark navy surface.
-// UI/UX Design, Development, SQA, Tools & Design Platforms.
+// -------------------------------------------------------------
+// LAYERED GLASS STACK — SKILLS SECTION
+// Editorial dark navy glass panels stacked with physical depth.
+// Front card sits in front, fully readable; background cards peek
+// out with stepped horizontal and vertical offsets.
 // Single source of truth: src/data/skills.js (no serial numbers, no invented skills).
 // -------------------------------------------------------------
 export function SkillsCapsules() {
-  const [expandedCategory, setExpandedCategory] = useState(null);
+  const [activeCategory, setActiveCategory] = useState(skillCategories[0]?.id || 'uiux');
+  const [isAllExpanded, setIsAllExpanded] = useState(false);
 
-  const toggleCategory = (catId) => {
-    setExpandedCategory((prev) => (prev === catId ? null : catId));
-  };
+  const activeGroup =
+    skillCategories.find((c) => c.id === activeCategory) || skillCategories[0];
+  const backgroundCategories = skillCategories.filter((c) => c.id !== activeCategory);
 
   return (
     <div
-      className="skills-capsules-container skills-3d-stack-stage"
+      className="skills-glass-stack-container"
       role="region"
-      aria-label="Layered 3D Skill Stack"
+      aria-label="Layered Glass Stack of Skills"
     >
-      <div className="skills-stack-toolbar" aria-hidden="true">
-        <div className="skills-stack-status">
-          <span className="skills-stack-dot" />
-          <span className="skills-stack-status-label">Layered 3D Dimensional Stack</span>
-          <span className="skills-stack-divider">&bull;</span>
-          <span className="skills-stack-sublabel">4 Core Competency Domains</span>
+      {/* Stack Navigation & View Mode Controls */}
+      <div className="skills-glass-toolbar">
+        <div className="skills-layer-tabs" role="tablist" aria-label="Skill Category Layers">
+          {skillCategories.map((grp) => {
+            const isActive = !isAllExpanded && activeCategory === grp.id;
+            return (
+              <button
+                key={grp.id}
+                type="button"
+                role="tab"
+                aria-selected={isActive}
+                aria-controls={`skills-layer-${grp.id}`}
+                className={`skills-layer-tab ${isActive ? 'is-active' : ''}`}
+                onClick={() => {
+                  setActiveCategory(grp.id);
+                  if (isAllExpanded) setIsAllExpanded(false);
+                }}
+              >
+                <span className="skills-tab-indicator" aria-hidden="true" />
+                <span className="skills-tab-label">{grp.title}</span>
+                <span className="skills-tab-pill">{grp.skills.length}</span>
+              </button>
+            );
+          })}
         </div>
+
         <button
           type="button"
-          className="skills-stack-view-toggle"
-          onClick={() => setExpandedCategory((prev) => (prev === 'all' ? null : 'all'))}
-          aria-label={expandedCategory === 'all' ? 'Return to layered 3D stack view' : 'Expand all skill categories'}
+          className="skills-stack-toggle-btn"
+          onClick={() => setIsAllExpanded((prev) => !prev)}
+          aria-label={isAllExpanded ? 'Switch to Layered Glass Stack view' : 'View all categories expanded'}
         >
-          <span className="skills-view-icon" aria-hidden="true">
-            {expandedCategory === 'all' ? '✕' : '⊞'}
+          <span className="skills-toggle-icon" aria-hidden="true">
+            {isAllExpanded ? '⊞' : '☰'}
           </span>
-          <span>{expandedCategory === 'all' ? 'Stack View' : 'Expand All'}</span>
+          <span>{isAllExpanded ? 'Layered Stack' : 'View All (4)'}</span>
         </button>
       </div>
 
-      <div className="skills-3d-cards-deck">
-        {skillCategories.map((grp, gIdx) => {
-          const isExpanded = expandedCategory === 'all' || expandedCategory === grp.id;
-          const previewCount = grp.id === 'development' ? 6 : 5;
-          const visibleSkills = isExpanded ? grp.skills : grp.skills.slice(0, previewCount);
-          const hiddenCount = Math.max(0, grp.skills.length - previewCount);
-          const layerClass = `stack-layer-${gIdx + 1}`;
-
-          return (
+      {/* Presentation Mode: All Expanded vs Layered Glass Stack */}
+      {isAllExpanded ? (
+        <div className="skills-expanded-deck">
+          {skillCategories.map((grp) => (
             <article
-              key={grp.id || gIdx}
-              id={`skill-card-${grp.id}`}
-              className={`skills-category-block ${layerClass} ${isExpanded ? 'is-expanded' : ''}`}
-              tabIndex={0}
-              aria-expanded={isExpanded}
-              aria-controls={`skills-capsules-${grp.id}`}
-              onClick={(e) => {
-                // Ignore if clicked on a button or capsule link
-                if (e.target.closest('button')) return;
-                toggleCategory(grp.id);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  if (e.target.tagName !== 'BUTTON') {
-                    e.preventDefault();
-                    toggleCategory(grp.id);
-                  }
-                }
-              }}
+              key={grp.id}
+              id={`skills-layer-${grp.id}`}
+              className="skills-glass-card skills-glass-card--standalone"
             >
-              <div className="skills-card-sheen" aria-hidden="true" />
-
-              <header className="skills-group-header">
-                <div className="skills-header-main">
-                  <div className="skills-title-row">
-                    <h3 className="skills-group-title">{grp.title}</h3>
-                    <span className="skills-count-pill" title={`${grp.skills.length} verified competencies`}>
-                      {grp.skills.length} Skills
-                    </span>
+              <header className="skills-glass-header">
+                <div className="skills-glass-header-text">
+                  <div className="skills-glass-title-row">
+                    <h3 className="skills-glass-title">{grp.title}</h3>
+                    <span className="skills-glass-badge">{grp.skills.length} Skills</span>
                   </div>
-                  {grp.blurb && <p className="skills-group-blurb">{grp.blurb}</p>}
+                  {grp.blurb && <p className="skills-glass-blurb">{grp.blurb}</p>}
                 </div>
-
-                <button
-                  type="button"
-                  className="skills-expand-trigger"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleCategory(grp.id);
-                  }}
-                  aria-label={isExpanded ? `Show preview for ${grp.title}` : `Explore all ${grp.skills.length} skills in ${grp.title}`}
-                >
-                  <span className="skills-trigger-text">
-                    {isExpanded ? 'Show preview' : `Explore all ${grp.skills.length}`}
-                  </span>
-                  <span className="skills-trigger-arrow" aria-hidden="true">
-                    {isExpanded ? '✕' : '↗'}
-                  </span>
-                </button>
               </header>
 
               <div
-                id={`skills-capsules-${grp.id}`}
-                className="skills-capsules-wrap"
+                className="skills-glass-capsules-grid"
                 role="list"
                 aria-label={`${grp.title} competencies`}
               >
-                {visibleSkills.map((skill, sIdx) => {
+                {grp.skills.map((skill, sIdx) => {
                   const skillName = typeof skill === 'string' ? skill : skill.name;
                   return (
-                    <span
-                      key={sIdx}
-                      className="skill-capsule"
-                      role="listitem"
-                      onClick={(e) => e.stopPropagation()}
-                    >
+                    <span key={sIdx} className="skills-glass-capsule" role="listitem">
                       {skillName}
                     </span>
                   );
                 })}
-
-                {!isExpanded && hiddenCount > 0 && (
-                  <span
-                    className="skill-capsule skill-capsule-more"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleCategory(grp.id);
-                    }}
-                    role="button"
-                    tabIndex={0}
-                    aria-label={`Expand ${hiddenCount} more skills in ${grp.title}`}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        toggleCategory(grp.id);
-                      }
-                    }}
-                  >
-                    +{hiddenCount} more ↗
-                  </span>
-                )}
               </div>
             </article>
-          );
-        })}
-      </div>
+          ))}
+        </div>
+      ) : (
+        <div className="skills-glass-stack-stage">
+          {/* Partially Visible Background Glass Layers */}
+          <div className="skills-background-layers-wrap" aria-hidden="true">
+            {backgroundCategories.map((grp, bgIdx) => {
+              const depthRank = backgroundCategories.length - bgIdx; // 3, 2, 1
+              return (
+                <div
+                  key={grp.id}
+                  className={`skills-glass-bg-layer skills-bg-depth-${depthRank}`}
+                  onClick={() => setActiveCategory(grp.id)}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Bring ${grp.title} layer to front`}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setActiveCategory(grp.id);
+                    }
+                  }}
+                >
+                  <div className="skills-bg-layer-header">
+                    <span className="skills-bg-layer-title">{grp.title}</span>
+                    <span className="skills-bg-layer-badge">{grp.skills.length} skills</span>
+                    <span className="skills-bg-layer-action">Bring to front ↗</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Foreground Active Card: Fully Readable, Crisp, Front of Stack */}
+          <article
+            id={`skills-layer-${activeGroup.id}`}
+            className="skills-glass-card skills-foreground-card"
+            tabIndex={0}
+            aria-label={`${activeGroup.title} active skill layer`}
+          >
+            <header className="skills-glass-header">
+              <div className="skills-glass-header-text">
+                <div className="skills-glass-title-row">
+                  <h3 className="skills-glass-title">{activeGroup.title}</h3>
+                  <span className="skills-glass-badge">
+                    {activeGroup.skills.length} Verified Skills
+                  </span>
+                </div>
+                {activeGroup.blurb && (
+                  <p className="skills-glass-blurb">{activeGroup.blurb}</p>
+                )}
+              </div>
+            </header>
+
+            <div
+              className="skills-glass-capsules-grid"
+              role="list"
+              aria-label={`${activeGroup.title} competencies`}
+            >
+              {activeGroup.skills.map((skill, sIdx) => {
+                const skillName = typeof skill === 'string' ? skill : skill.name;
+                return (
+                  <span key={sIdx} className="skills-glass-capsule" role="listitem">
+                    {skillName}
+                  </span>
+                );
+              })}
+            </div>
+
+            <footer className="skills-card-footer">
+              <span className="skills-card-footer-indicator">
+                Layer {skillCategories.findIndex((c) => c.id === activeCategory) + 1} of {skillCategories.length} &bull; Click any background layer or tab to switch
+              </span>
+            </footer>
+          </article>
+        </div>
+      )}
     </div>
   );
 }
