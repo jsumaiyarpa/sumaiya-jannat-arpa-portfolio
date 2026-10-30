@@ -1636,11 +1636,122 @@ export function SkillsCapsules() {
 // REVIEWS & TESTIMONIALS SECTION
 // Functional carousel if genuine reviews exist; elegant empty state if empty
 // -------------------------------------------------------------
+export function getReviewImageSrc(src) {
+  if (!src) return '';
+  if (src.startsWith('public/')) return '/' + src.slice('public/'.length);
+  if (src.startsWith('/public/')) return src.slice('/public'.length);
+  return src.startsWith('/') ? src : '/' + src;
+}
+
 export function ReviewsSection({ items = [] }) {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [touchStart, setTouchStart] = useState(null);
-  const [touchEnd, setTouchEnd] = useState(null);
+  const [isPaused, setIsPaused] = useState(false);
   const total = items.length;
+
+  // Single-card infinite sliding carousel state
+  // Virtual index runs from 1 to total for original items, 0 for clone-last, total + 1 for clone-first
+  const [virtualIndex, setVirtualIndex] = useState(1);
+  const [enableTransition, setEnableTransition] = useState(true);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [touchStartX, setTouchStartX] = useState(null);
+
+  // Active index for dots and current indicator: 0 to total - 1
+  const activeIndex = total > 0 ? (virtualIndex - 1 + total) % total : 0;
+
+  // Auto-rotation effect: 6000ms gentle interval, paused on hover/touch/focus
+  useEffect(() => {
+    if (isPaused || total <= 1) return;
+
+    if (typeof window !== 'undefined' && window.matchMedia) {
+      const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+      if (mediaQuery && mediaQuery.matches) return;
+    }
+
+    const interval = setInterval(() => {
+      setEnableTransition(true);
+      setVirtualIndex((prev) => prev + 1);
+    }, 6000);
+
+    return () => clearInterval(interval);
+  }, [isPaused, total]);
+
+  // Handle seamless infinite looping at boundaries
+  const handleTransitionEnd = (e) => {
+    if (e.target !== e.currentTarget) return;
+
+    setIsTransitioning(false);
+    if (virtualIndex === total + 1) {
+      // Reached the trailing clone of the first item, snap seamlessly to real first item (index 1)
+      setEnableTransition(false);
+      setVirtualIndex(1);
+    } else if (virtualIndex === 0) {
+      // Reached the leading clone of the last item, snap seamlessly to real last item (index total)
+      setEnableTransition(false);
+      setVirtualIndex(total);
+    }
+  };
+
+  // Re-enable CSS transition after seamless snap
+  useEffect(() => {
+    if (!enableTransition) {
+      const id = requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setEnableTransition(true);
+        });
+      });
+      return () => cancelAnimationFrame(id);
+    }
+  }, [enableTransition]);
+
+  // Navigation handlers
+  const handlePrev = () => {
+    if (isTransitioning) return;
+    setIsTransitioning(true);
+    setEnableTransition(true);
+    setVirtualIndex((prev) => prev - 1);
+  };
+
+  const handleNext = () => {
+    if (isTransitioning) return;
+    setIsTransitioning(true);
+    setEnableTransition(true);
+    setVirtualIndex((prev) => prev + 1);
+  };
+
+  const goToSlide = (targetIndex) => {
+    if (isTransitioning || targetIndex === activeIndex) return;
+    setIsTransitioning(true);
+    setEnableTransition(true);
+    setVirtualIndex(targetIndex + 1);
+  };
+
+  // Touch handlers for mobile swipe
+  const handleTouchStart = (e) => {
+    setIsPaused(true);
+    setTouchStartX(e.touches[0].clientX);
+  };
+
+  const handleTouchEnd = (e) => {
+    setIsPaused(false);
+    if (touchStartX === null) return;
+    const deltaX = e.changedTouches[0].clientX - touchStartX;
+    if (deltaX > 40) {
+      handlePrev();
+    } else if (deltaX < -40) {
+      handleNext();
+    }
+    setTouchStartX(null);
+  };
+
+  // Keyboard navigation
+  const handleKeyDown = (e) => {
+    if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      handlePrev();
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      handleNext();
+    }
+  };
 
   if (!items || total === 0) {
     return (
@@ -1659,98 +1770,170 @@ export function ReviewsSection({ items = [] }) {
     );
   }
 
-  const next = () => setCurrentIndex((prev) => (prev + 1) % total);
-  const prev = () => setCurrentIndex((prev) => (prev - 1 + total) % total);
+  // Construct extended slides array for seamless infinite looping:
+  // [lastItem (clone), ...items, firstItem (clone)]
+  const slides = total > 1
+    ? [
+        { ...items[total - 1], _isClone: true, _key: 'clone-last' },
+        ...items.map((item, idx) => ({ ...item, _isClone: false, _key: `real-${idx}` })),
+        { ...items[0], _isClone: true, _key: 'clone-first' },
+      ]
+    : items.map((item, idx) => ({ ...item, _isClone: false, _key: `single-${idx}` }));
 
-  const handleKeyDown = (e) => {
-    if (e.key === 'ArrowRight') {
-      e.preventDefault();
-      next();
-    } else if (e.key === 'ArrowLeft') {
-      e.preventDefault();
-      prev();
-    }
+  const renderCard = (item, slideIndex) => {
+    const isClone = item._isClone;
+    const reviewerName = item.author || item.name;
+    const imgSrc = getReviewImageSrc(item.image);
+    const isCurrent = !isClone && activeIndex === (slideIndex - 1);
+
+    return (
+      <div
+        key={`${item._key}-${slideIndex}`}
+        className="reviews-carousel-slide"
+        role="group"
+        aria-roledescription="slide"
+        aria-label={isClone ? undefined : `${reviewerName} testimonial (${activeIndex + 1} of ${total})`}
+        aria-hidden={isClone || !isCurrent ? 'true' : 'false'}
+      >
+        <article className="review-glass-card">
+          <div className="review-quote-mark" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
+            </svg>
+          </div>
+
+          <blockquote className="review-quote-text">
+            {item.quote || item.testimonial}
+          </blockquote>
+
+          <div className="review-author-row">
+            <div className="review-author-profile">
+              {item.image && (
+                <div className="review-avatar-frame">
+                  <img
+                    src={imgSrc}
+                    data-src={item.image}
+                    alt={isClone ? '' : reviewerName}
+                    className="review-avatar-img"
+                    loading="lazy"
+                    decoding="async"
+                    onError={(e) => {
+                      if (item.image && e.currentTarget.getAttribute('src') !== item.image) {
+                        e.currentTarget.src = item.image;
+                      }
+                    }}
+                  />
+                </div>
+              )}
+              <div className="review-author-info">
+                <span className="review-author-name">{reviewerName}</span>
+                {item.role && (
+                  <span className="review-author-role">
+                    {item.role}{item.organization ? ` · ${item.organization}` : ''}
+                  </span>
+                )}
+              </div>
+            </div>
+            {item.date && <span className="review-date">{item.date}</span>}
+          </div>
+        </article>
+      </div>
+    );
   };
-
-  const handleTouchStart = (e) => {
-    setTouchEnd(null);
-    setTouchStart(e.targetTouches[0].clientX);
-  };
-
-  const handleTouchMove = (e) => {
-    setTouchEnd(e.targetTouches[0].clientX);
-  };
-
-  const handleTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
-    const distance = touchStart - touchEnd;
-    if (distance > 50) next();
-    else if (distance < -50) prev();
-  };
-
-  const current = items[currentIndex];
 
   return (
     <div
-      className="reviews-carousel-wrapper"
+      className={`reviews-carousel-outer reviews-marquee-wrapper ${isPaused ? 'is-paused' : ''}`}
       role="region"
       aria-roledescription="carousel"
-      aria-label="Testimonials"
+      aria-label="Peer Endorsements and Testimonials"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+      onFocus={() => setIsPaused(true)}
+      onBlur={() => setIsPaused(false)}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
       onKeyDown={handleKeyDown}
       tabIndex={0}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
     >
-      <article className="review-glass-card" aria-roledescription="slide" aria-label={`Review ${currentIndex + 1} of ${total}`}>
-        <div className="review-quote-mark" aria-hidden="true">“</div>
-        <blockquote className="review-quote-text">
-          {current.quote}
-        </blockquote>
-        <div className="review-author-row">
-          <div className="review-author-info">
-            <span className="review-author-name">{current.author}</span>
-            {current.role && (
-              <span className="review-author-role">
-                {current.role}{current.organization ? ` · ${current.organization}` : ''}
-              </span>
-            )}
-          </div>
-          {current.date && <span className="review-date">{current.date}</span>}
-        </div>
-      </article>
-
-      <div className="reviews-controls-bar">
-        <button
-          type="button"
-          className="carousel-arrow-btn"
-          onClick={prev}
-          aria-label="Previous Review"
+      <div className="reviews-carousel-viewport reviews-marquee-viewport">
+        <div
+          className="reviews-carousel-track reviews-marquee-track"
+          style={{
+            transform: `translateX(-${virtualIndex * 100}%)`,
+            transition: enableTransition
+              ? 'transform 600ms cubic-bezier(0.16, 1, 0.3, 1)'
+              : 'none',
+          }}
+          onTransitionEnd={handleTransitionEnd}
         >
-          <span aria-hidden="true">←</span>
-        </button>
-        <div className="reviews-progress-dots" role="tablist" aria-label="Review selector">
-          {items.map((_, idx) => (
-            <button
-              key={idx}
-              type="button"
-              role="tab"
-              aria-selected={idx === currentIndex}
-              className={`review-dot ${idx === currentIndex ? 'active' : ''}`}
-              onClick={() => setCurrentIndex(idx)}
-              aria-label={`Jump to review ${idx + 1}`}
-            />
-          ))}
+          {slides.map((item, idx) => renderCard(item, idx))}
         </div>
-        <button
-          type="button"
-          className="carousel-arrow-btn"
-          onClick={next}
-          aria-label="Next Review"
-        >
-          <span aria-hidden="true">→</span>
-        </button>
       </div>
+
+      {total > 1 && (
+        <div className="reviews-carousel-controls" aria-label="Testimonial controls">
+          <button
+            type="button"
+            className="reviews-nav-arrow reviews-arrow-prev"
+            aria-label="Previous testimonial"
+            onClick={handlePrev}
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+          </button>
+
+          <div className="reviews-dots" role="tablist" aria-label="Testimonial slides">
+            {items.map((item, idx) => {
+              const name = item.author || item.name;
+              const isActive = activeIndex === idx;
+              return (
+                <button
+                  key={idx}
+                  type="button"
+                  role="tab"
+                  aria-selected={isActive}
+                  aria-label={`Go to testimonial ${idx + 1} of ${total}: ${name}`}
+                  className={`reviews-dot ${isActive ? 'is-active' : ''}`}
+                  onClick={() => goToSlide(idx)}
+                />
+              );
+            })}
+          </div>
+
+          <button
+            type="button"
+            className="reviews-nav-arrow reviews-arrow-next"
+            aria-label="Next testimonial"
+            onClick={handleNext}
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </button>
+        </div>
+      )}
     </div>
   );
 }
