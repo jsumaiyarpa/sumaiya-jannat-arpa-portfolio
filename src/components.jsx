@@ -4,6 +4,7 @@ import { site } from './data/site.js';
 import { categories, projects } from './data/projects.js';
 import { skillCategories } from './data/skills.js';
 import { githubConfig, languageColors, formatRelativeDate, fetchAdditionalRepos } from './data/github.js';
+import { faqData } from './data/faq.js';
 
 export function usePageTitle(t) {
   useEffect(() => {
@@ -268,12 +269,15 @@ export function Img({ src, alt = '', ratio = '16/10', label = '', category = 'so
 // Clean, minimal typographic lockup with optional category label
 // -------------------------------------------------------------
 export function SectionHeader({ tag = '', number = '', title, subtitle = '', action = null, className = '' }) {
+  const hasTop = Boolean(tag || action);
   return (
-    <div className={`sec-header ${className}`}>
-      <div className="sec-header-top">
-        {tag && <span className="sec-tag">{tag}</span>}
-        {action && <div className="sec-action-top">{action}</div>}
-      </div>
+    <div className={`sec-header ${!hasTop ? 'sec-header-clean' : ''} ${className}`}>
+      {hasTop && (
+        <div className="sec-header-top">
+          {tag && <span className="sec-tag">{tag}</span>}
+          {action && <div className="sec-action-top">{action}</div>}
+        </div>
+      )}
       <div className="sec-header-main">
         <h2 className="sec-title">{title}</h2>
         {subtitle && <p className="sec-subtitle">{subtitle}</p>}
@@ -875,7 +879,7 @@ export function Timeline({ entries }) {
 
 // -------------------------------------------------------------
 // EDITORIAL SOCIALS
-// Real, working links to GitHub, LinkedIn, Behance, Email, and Phone
+// Real, working links to GitHub, LinkedIn, Behance, and Email
 // -------------------------------------------------------------
 export function Socials() {
   return (
@@ -1752,6 +1756,81 @@ export function ReviewsSection({ items = [] }) {
 }
 
 // -------------------------------------------------------------
+// GET TO KNOW SUMAIYA (FAQ ACCORDION)
+// Single-open accessible accordion with smooth expand/collapse
+// -------------------------------------------------------------
+export function FAQSection({ items = faqData }) {
+  const [openIndex, setOpenIndex] = useState(null);
+
+  const toggleItem = (index) => {
+    setOpenIndex((prev) => (prev === index ? null : index));
+  };
+
+  return (
+    <div className="faq-accordion-container">
+      <div className="faq-accordion-list" role="presentation">
+        {items.map((item, index) => {
+          const isOpen = openIndex === index;
+          const buttonId = `faq-trigger-${index}`;
+          const contentId = `faq-content-${index}`;
+
+          return (
+            <div
+              key={item.id || index}
+              className={`faq-accordion-item ${isOpen ? 'is-open' : ''}`}
+            >
+              <h3 className="faq-item-heading">
+                <button
+                  type="button"
+                  id={buttonId}
+                  className="faq-trigger-btn"
+                  aria-expanded={isOpen}
+                  aria-controls={contentId}
+                  onClick={() => toggleItem(index)}
+                >
+                  <span className="faq-trigger-left">
+                    <span className="faq-question-num">0{index + 1}.</span>
+                    <span className="faq-question-text">{item.question}</span>
+                  </span>
+                  <span className={`faq-chevron-box ${isOpen ? 'is-open' : ''}`} aria-hidden="true">
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                  </span>
+                </button>
+              </h3>
+
+              <div
+                id={contentId}
+                role="region"
+                aria-labelledby={buttonId}
+                className={`faq-collapse-body ${isOpen ? 'is-open' : ''}`}
+              >
+                <div className="faq-answer-inner">
+                  <p className="faq-answer-text">
+                    {item.answer}
+                  </p>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+
+// -------------------------------------------------------------
 // LIVE GITHUB REPOSITORIES (ADDITIONAL / OPEN-SOURCE FEED)
 // Automatically fetches public repositories via GitHub REST API.
 // Safely deduplicates against manually curated portfolio projects.
@@ -1931,8 +2010,6 @@ export function Layout({ children }) {
 
   // Recognizable social links for footer
   const footerSocials = [
-    { id: 'facebook', label: 'Facebook', url: '', unconfigured: true },
-    { id: 'instagram', label: 'Instagram', url: '', unconfigured: true },
     { id: 'github', label: 'GitHub', url: 'https://github.com/jsumaiyarpa', unconfigured: false },
     { id: 'linkedin', label: 'LinkedIn', url: 'https://www.linkedin.com/in/sumaiya-jannat-arpa/', unconfigured: false },
     { id: 'behance', label: 'Behance', url: 'https://www.behance.net/sumaiyarpa2', unconfigured: false },
@@ -2031,7 +2108,7 @@ export function Layout({ children }) {
           <div className="footer-columns-grid">
             {/* Left column: Connect & Follow */}
             <div className="footer-col footer-socials-col">
-              <h3 className="footer-col-title">Connect &amp; Follow</h3>
+              <h3 className="footer-col-title">Connect &amp; <span className="ref-about-heading-bold">Follow</span></h3>
               <span className="footer-col-eyebrow">Social Presence</span>
 
               <div className="footer-social-icons-cluster" role="list" aria-label="Social profiles">
@@ -2092,18 +2169,12 @@ export function Layout({ children }) {
               </div>
 
               <div className="footer-contact-block">
-                <h3 className="footer-col-title">Get in Touch</h3>
+                <h3 className="footer-col-title">Get in <span className="ref-about-heading-bold">Touch</span></h3>
                 <div className="footer-contact-items">
                   <div className="footer-contact-row">
                     <span className="contact-row-label">Email:</span>
                     <a href={`mailto:${site.email}`} className="footer-contact-action">
                       {site.email}
-                    </a>
-                  </div>
-                  <div className="footer-contact-row">
-                    <span className="contact-row-label">Phone:</span>
-                    <a href={`tel:${site.phone.replace(/\s+/g, '')}`} className="footer-contact-action">
-                      {site.phone}
                     </a>
                   </div>
                   <div className="footer-contact-row">

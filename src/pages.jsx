@@ -16,6 +16,7 @@ import {
   CategoryProjectModal,
   SkillsCapsules,
   ReviewsSection,
+  FAQSection,
   ProjectCard,
   Timeline,
   Socials,
@@ -358,7 +359,7 @@ export function Home() {
             </div>
           </div>
 
-          <h1 className="sr-only">Sumaiya Jannat Arpa — Portfolio</h1>
+          <h1 className="sr-only">Sumaiya Jannat Arpa - Portfolio</h1>
 
           {/* Floating Rounded Introduction Card overlapping the lower portrait bust */}
           <div className="hero-cover-card">
@@ -1094,9 +1095,7 @@ export function Home() {
         <span id="works" style={{ position: 'absolute', top: '-5.5rem' }} aria-hidden="true" />
         <div className="site-wrapper">
           <SectionHeader
-            tag="Portfolio Archive"
-            title={<>Four Core <em>Project Categories.</em></>}
-            subtitle="Select any category to explore authentic project case studies, repositories, and technical deliverables."
+            title={<>Four Core <span className="ref-about-heading-bold">Project Categories</span></>}
           />
 
           <FourCategoryCards onSelectCategory={(catId) => setActiveCategory(catId)} />
@@ -1118,12 +1117,21 @@ export function Home() {
       <section id="reviews" className="page-section section-reviews-clean">
         <div className="site-wrapper">
           <SectionHeader
-            tag="Testimonials"
-            title={<>Peer Endorsements &amp; <em>Recommendations.</em></>}
-            subtitle="Genuine feedback from academic peers, project teammates, and mentor evaluations."
+            title={<>Peer Endorsements &amp; <span className="ref-about-heading-bold">Recommendations</span></>}
           />
 
           <ReviewsSection items={reviews} />
+        </div>
+      </section>
+
+      {/* 07. GET TO KNOW SUMAIYA (FAQ SECTION) */}
+      <section id="faq" className="page-section section-faq">
+        <div className="site-wrapper">
+          <SectionHeader
+            title={<>Get to Know <span className="ref-about-heading-bold">Sumaiya</span></>}
+          />
+
+          <FAQSection />
         </div>
       </section>
     </>
@@ -1807,7 +1815,7 @@ export function Resume() {
               <div className="resume-sheet-header">
                 <h2>{site.name.toUpperCase()}</h2>
                 <span className="resume-sheet-sub">CSE Undergraduate · Software Engineering Major</span>
-                <span className="resume-sheet-loc">{site.location} — {site.institution} | {site.email} | {site.phone}</span>
+                <span className="resume-sheet-loc">{site.location} — {site.institution} | {site.email}</span>
               </div>
               <div className="resume-sheet-body">
                 <div className="sheet-sec">
@@ -1939,7 +1947,7 @@ export function Contact() {
       <section className="page-section">
         <div className="site-wrapper contact-page-layout">
           <div className="contact-info-col">
-            <h2 className="editorial-lead-title">Direct Inquiries &amp; <em>Channels</em></h2>
+            <h2 className="editorial-lead-title">Direct Inquiries &amp; <span className="ref-about-heading-bold">Channels</span></h2>
             <p className="contact-text-body">
               I welcome inquiries regarding software engineering internships, frontend development, UI/UX design opportunities, and SQA trainee roles. Feel free to reach out directly via email or connect through professional platforms.
             </p>

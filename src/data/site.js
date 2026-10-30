@@ -12,7 +12,6 @@ export const site = {
   location: 'Dhaka, Bangladesh',
   coordinates: '23.7687° N, 90.4258° E',
   email: 'jannat.sumaiyarpa@gmail.com',
-  phone: '[REDACTED]',
   portrait: '/images/portrait.jpg',
   resume: {
     file: '/resume/Sumaiya_Jannat_Arpa_Resume.pdf',
@@ -48,13 +47,6 @@ export const site = {
       handle: 'jannat.sumaiyarpa@gmail.com',
       url: 'mailto:jannat.sumaiyarpa@gmail.com',
       icon: 'mail',
-    },
-    {
-      id: 'phone',
-      label: 'Phone',
-      handle: '[REDACTED]',
-      url: 'tel:[REDACTED]',
-      icon: 'phone',
     },
   ],
   cvUrl: '/resume/Sumaiya_Jannat_Arpa_Resume.pdf',
