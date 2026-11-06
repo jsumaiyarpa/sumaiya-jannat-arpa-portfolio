@@ -1,13 +1,26 @@
 import { useState } from 'react';
-import { NavLink, useNavigate, Link } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation, Link } from 'react-router-dom';
 import { ThemeToggle } from '../components.jsx';
 import { adminApi } from './adminApi.js';
 import './admin.css';
 
 export default function AdminLayout({ children }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+
+  const getPageInfo = () => {
+    if (location.pathname.startsWith('/admin/projects')) return { label: 'CONTENT MANAGEMENT', title: 'Projects Management' };
+    if (location.pathname.startsWith('/admin/skills')) return { label: 'CONTENT MANAGEMENT', title: 'Skills Management' };
+    if (location.pathname.startsWith('/admin/experience')) return { label: 'CONTENT MANAGEMENT', title: 'Experience Management' };
+    if (location.pathname.startsWith('/admin/education')) return { label: 'CONTENT MANAGEMENT', title: 'Education Management' };
+    if (location.pathname.startsWith('/admin/certificates')) return { label: 'CONTENT MANAGEMENT', title: 'Certificates Management' };
+    if (location.pathname.startsWith('/admin/reviews')) return { label: 'CONTENT MANAGEMENT', title: 'Reviews Management' };
+    return { label: 'ADMINISTRATION', title: 'Portfolio Dashboard' };
+  };
+
+  const pageInfo = getPageInfo();
 
   async function handleLogout() {
     try {
@@ -58,10 +71,71 @@ export default function AdminLayout({ children }) {
           </NavLink>
 
           <span className="admin-nav-label">CONTENT MANAGEMENT</span>
-          <div className="admin-nav-coming-soon">
-            <span>Portfolio Sections</span>
-            <span className="admin-tag-pill">Read Only</span>
-          </div>
+          <NavLink
+            to="/admin/projects"
+            onClick={() => setMobileMenuOpen(false)}
+            className={({ isActive }) =>
+              `admin-nav-link${isActive ? ' active' : ''}`
+            }
+          >
+            <span className="admin-nav-icon" aria-hidden="true">💼</span>
+            <span>Projects</span>
+          </NavLink>
+
+          <NavLink
+            to="/admin/skills"
+            onClick={() => setMobileMenuOpen(false)}
+            className={({ isActive }) =>
+              `admin-nav-link${isActive ? ' active' : ''}`
+            }
+          >
+            <span className="admin-nav-icon" aria-hidden="true">⚡</span>
+            <span>Skills</span>
+          </NavLink>
+
+          <NavLink
+            to="/admin/experience"
+            onClick={() => setMobileMenuOpen(false)}
+            className={({ isActive }) =>
+              `admin-nav-link${isActive ? ' active' : ''}`
+            }
+          >
+            <span className="admin-nav-icon" aria-hidden="true">🏢</span>
+            <span>Experience</span>
+          </NavLink>
+
+          <NavLink
+            to="/admin/education"
+            onClick={() => setMobileMenuOpen(false)}
+            className={({ isActive }) =>
+              `admin-nav-link${isActive ? ' active' : ''}`
+            }
+          >
+            <span className="admin-nav-icon" aria-hidden="true">🎓</span>
+            <span>Education</span>
+          </NavLink>
+
+          <NavLink
+            to="/admin/certificates"
+            onClick={() => setMobileMenuOpen(false)}
+            className={({ isActive }) =>
+              `admin-nav-link${isActive ? ' active' : ''}`
+            }
+          >
+            <span className="admin-nav-icon" aria-hidden="true">📜</span>
+            <span>Certificates</span>
+          </NavLink>
+
+          <NavLink
+            to="/admin/reviews"
+            onClick={() => setMobileMenuOpen(false)}
+            className={({ isActive }) =>
+              `admin-nav-link${isActive ? ' active' : ''}`
+            }
+          >
+            <span className="admin-nav-icon" aria-hidden="true">💬</span>
+            <span>Reviews</span>
+          </NavLink>
         </nav>
 
         <div className="admin-sidebar-footer">
@@ -103,8 +177,8 @@ export default function AdminLayout({ children }) {
             </button>
 
             <div>
-              <span className="admin-topbar-label">ADMINISTRATION</span>
-              <h2 className="admin-topbar-title">Portfolio Dashboard</h2>
+              <span className="admin-topbar-label">{pageInfo.label}</span>
+              <h2 className="admin-topbar-title">{pageInfo.title}</h2>
             </div>
           </div>
 

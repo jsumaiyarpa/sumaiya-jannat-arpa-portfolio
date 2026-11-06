@@ -1,4 +1,3 @@
-
 import express from "express";
 import helmet from "helmet";
 import cors from "cors";
@@ -6,6 +5,8 @@ import loginRouter from "./routes/auth/login.js";
 import { env } from "./config/env.js";
 import sessionRouter from "./routes/auth/session.js";
 import adminRouter from "./routes/admin.js";
+import publicProjectsRouter from "./routes/publicProjects.js";
+import publicContentRouter from "./routes/publicContent.js";
 import {
   notFoundHandler,
   errorHandler,
@@ -31,6 +32,9 @@ app.get("/api/health", (req, res) => {
     timestamp: new Date().toISOString(),
   });
 });
+
+app.use("/api/projects", publicProjectsRouter);
+app.use("/api", publicContentRouter);
 app.use("/api/auth/login", loginRouter);
 app.use("/api/auth", sessionRouter);
 app.use("/api/admin", adminRouter);

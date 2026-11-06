@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { site } from './data/site.js';
 import { projects, categories } from './data/projects.js';
+import { useProjects } from './context/ProjectsContext.jsx';
+import { usePortfolioData, useExperience, useEducation, useCertificates, useReviews } from './context/PortfolioDataContext.jsx';
 import { experience } from './data/experience.js';
 import { about } from './data/about.js';
 import { gallery } from './data/gallery.js';
@@ -15,6 +17,7 @@ import {
   FourCategoryCards,
   CategoryProjectModal,
   SkillsCapsules,
+  SkillsOverview,
   ReviewsSection,
   FAQSection,
   ProjectCard,
@@ -108,6 +111,285 @@ function LightboxModal({ item, index, total, onNext, onPrev, onClose }) {
 }
 
 // -------------------------------------------------------------
+// 01. HOMEPAGE STATIC FALLBACK DATA & ASSET RESOLVERS
+// -------------------------------------------------------------
+const ORG_LOGO_MAP = {
+  ewuecc: '/images/orgs/ewuecc.png',
+  conversation: '/images/orgs/ewuecc.png',
+  'east west university english conversation club': '/images/orgs/ewuecc.png',
+  biic: '/images/orgs/biic.png',
+  ielts: '/images/orgs/biic.png',
+  immigration: '/images/orgs/biic.png',
+  'banglay ielts': '/images/orgs/biic.png',
+  ahoban: '/images/orgs/ahoban.png',
+  olympiad: '/images/orgs/eo.png',
+  'english olympiad': '/images/orgs/eo.png',
+  istarc: '/images/orgs/istarc.png',
+  'science and technology': '/images/orgs/istarc.png',
+};
+
+function resolveOrgLogo(orgName = '', explicitLogo = '') {
+  if (explicitLogo && typeof explicitLogo === 'string' && explicitLogo.trim()) {
+    return explicitLogo.trim();
+  }
+  const clean = String(orgName).toLowerCase();
+  for (const [key, path] of Object.entries(ORG_LOGO_MAP)) {
+    if (clean.includes(key)) return path;
+  }
+  return '';
+}
+
+const KNOWN_POST_URLS = {
+  ewuecc: 'https://www.facebook.com/photo.php?fbid=1224625912453564&id=100047185015473&set=a.748099713439522',
+  conversation: 'https://www.facebook.com/photo.php?fbid=1224625912453564&id=100047185015473&set=a.748099713439522',
+  biic: 'https://www.facebook.com/photo.php?fbid=571666945933995&id=100092720820391&set=a.175838728850154',
+  ielts: 'https://www.facebook.com/photo.php?fbid=571666945933995&id=100092720820391&set=a.175838728850154',
+  ahoban: 'https://www.facebook.com/photo.php?fbid=4682576128447326&id=224123104292673&set=a.231530316885285',
+  olympiad: 'https://www.facebook.com/EnglishOlympiad/posts/sumaiya-jannat-arpa-campus-ambassador-english-olympiadideal-school-and-college-e/2078778598931050/',
+};
+
+function resolvePostUrl(orgName = '', explicitPost = '') {
+  if (explicitPost && typeof explicitPost === 'string' && explicitPost.trim()) {
+    return explicitPost.trim();
+  }
+  const clean = String(orgName).toLowerCase();
+  for (const [key, url] of Object.entries(KNOWN_POST_URLS)) {
+    if (clean.includes(key)) return url;
+  }
+  return '';
+}
+
+function normalizeExperienceItem(exp, idx = 0) {
+  if (!exp) return null;
+  const orgName = String(exp.organization || exp.fullName || exp.org || exp.company || 'Experience');
+  const explicitLogo = typeof exp.logoUrl === 'string' && exp.logoUrl.trim()
+    ? exp.logoUrl.trim()
+    : (typeof exp.imageUrl === 'string' && exp.imageUrl.trim()
+      ? exp.imageUrl.trim()
+      : (typeof exp.image === 'string' && exp.image.trim() ? exp.image.trim() : ''));
+
+  const logo = exp.image || resolveOrgLogo(orgName, explicitLogo);
+  const primaryRole = (Array.isArray(exp.roles) && exp.roles.length > 0) ? exp.roles[0] : null;
+  const postUrl = exp.postUrl || primaryRole?.postUrl || resolvePostUrl(orgName);
+
+  return {
+    id: exp.id || `exp-${idx}`,
+    category: String(exp.category || exp.orgType || exp.type || 'EXPERIENCE').toUpperCase(),
+    title: String(exp.title || primaryRole?.title || orgName),
+    organization: orgName,
+    date: String(exp.date || primaryRole?.dates || exp.location || ''),
+    description: String(exp.description || primaryRole?.description || ''),
+    image: logo || '',
+    imageAlt: exp.imageAlt || `${orgName} logo`,
+    tags: Array.isArray(exp.tags)
+      ? exp.tags
+      : (primaryRole && Array.isArray(primaryRole.highlights) && primaryRole.highlights.length > 0
+        ? primaryRole.highlights.slice(0, 3)
+        : []),
+    postUrl: postUrl || '',
+  };
+}
+
+const STATIC_EXPERIENCE_ITEMS = [
+  {
+    key: 'ewuecc',
+    category: 'TEAM LEADERSHIP',
+    title: 'Head of Sub-Executives & Volunteers',
+    organization: 'East West University English Conversation Club (EWUECC)',
+    date: '2024 - 2025',
+    description:
+      'Progressed from volunteer to Sub-Executive of Arts & Crafts, then Head. Led event and workshop coordination and designed promotional posters in Canva.',
+    image: '/images/orgs/ewuecc.png',
+    imageAlt: 'EWUECC organization logo',
+    postUrl: 'https://www.facebook.com/photo.php?fbid=1224625912453564&id=100047185015473&set=a.748099713439522',
+    tags: ['Leadership', 'Events', 'Canva'],
+  },
+  {
+    key: 'biic',
+    category: 'CAMPUS OUTREACH',
+    title: 'Campus Crew',
+    organization: 'Banglay IELTS & Immigration Center',
+    date: 'Feb 2025 - Sep 2025',
+    description:
+      'Represented the organization on campus, promoted events through social media campaigns and supported local outreach.',
+    image: '/images/orgs/biic.png',
+    imageAlt: 'BIIC organization logo',
+    postUrl: 'https://www.facebook.com/photo.php?fbid=571666945933995&id=100092720820391&set=a.175838728850154',
+    tags: ['Outreach', 'Promotion', 'Communication'],
+  },
+  {
+    key: 'ahoban',
+    category: 'COMMUNITY INITIATIVES',
+    title: 'Sub-Executive',
+    organization: 'AHOBAN Foundation',
+    date: '2021 - 2024',
+    description:
+      'Progressed from Campus Ambassador to Sub-Executive, supporting social welfare, fundraising and community initiatives including Winter Warmers and Feast with Families.',
+    image: '/images/orgs/ahoban.png',
+    imageAlt: 'AHOBAN Foundation logo',
+    postUrl: 'https://www.facebook.com/photo.php?fbid=4682576128447326&id=224123104292673&set=a.231530316885285',
+    tags: ['Social Welfare', 'Fundraising', 'Teamwork'],
+  },
+  {
+    key: 'eo',
+    category: 'CAMPUS ENGAGEMENT',
+    title: 'Campus Ambassador',
+    organization: 'English Olympiad',
+    date: '2020 - 2022',
+    description:
+      'Supported event promotion, coordination and social media engagement for campus initiatives.',
+    image: '/images/orgs/eo.png',
+    imageAlt: 'English Olympiad organization logo',
+    postUrl: 'https://www.facebook.com/EnglishOlympiad/posts/sumaiya-jannat-arpa-campus-ambassador-english-olympiadideal-school-and-college-e/2078778598931050/',
+    tags: ['Event Promotion', 'Coordination'],
+  },
+  {
+    key: 'istarc',
+    category: 'TECHNOLOGY & TEAMWORK',
+    title: 'Coordinator',
+    organization:
+      'ISTARC - Ideal Science and Technology Aiming Research Council',
+    date: '2018 - 2019',
+    description:
+      'Progressed from volunteer to Coordinator, supporting technology-related events, volunteer activities and event planning.',
+    image: '/images/orgs/istarc.png',
+    imageAlt: 'ISTARC organization logo',
+    tags: ['Technology', 'Volunteering', 'Planning'],
+  },
+];
+
+const STATIC_CREDENTIAL_ITEMS = [
+  {
+    category: 'UI/UX DESIGN',
+    title: 'UI/UX Design Career Track Program',
+    organization: 'OSTAD',
+    date: 'Issued August 2026',
+    certificateType: 'Certificate of Completion',
+    image: '/images/certificates/ostad_marks_uiux.png',
+    url: 'https://ostad.app/share/certificate/c47328-sumaiya-jannat-arpa',
+  },
+  {
+    category: 'UI/UX DESIGN',
+    title: 'UI/UX Design Career Track Program',
+    organization: 'OSTAD',
+    date: 'Issued August 2026',
+    certificateType: 'Certificate of Assessment',
+    image: '/images/certificates/ostad_certificate_uiux.png',
+    url: 'https://ostad.app/share/certificate/c47329-sumaiya-jannat-arpa',
+  },
+  {
+    category: 'ACADEMIC HONOR',
+    title: '100% Merit Scholarship',
+    organization: 'East West University',
+    date: 'March 2023',
+    description:
+      'Awarded for four years, from Fall 2022 to Summer 2026, on the basis of SSC and HSC results.',
+    image: '/images/certificates/meritEWU.png',
+    url: 'https://www.ewubd.edu/storage/app/uploads/public/633/955/5d0/6339555d01897026666955.pdf',
+  },
+  {
+    category: 'SCHOLARSHIP',
+    title: 'Medha Lalon Fund Scholarship',
+    organization: 'East West University',
+    date: 'September 2025',
+    description:
+      'Scholarship of BDT 45,000 covering Fall 2025, Spring 2026 and Summer 2026.',
+  },
+  {
+    category: 'AI & DATA',
+    title: 'Data Analytics in the AI Era',
+    organization: 'Grameenphone Ltd.',
+    date: 'October 2026',
+    certificateType: 'Certificate of Completion',
+    image: '/images/certificates/dataAnalytics_gp.png',
+    url: 'https://www.grameenphone.academy/cert/4d0d76a94ed7',
+  },
+  {
+    category: 'AI & DATA',
+    title: 'Data Foundations with AI',
+    organization: 'Grameenphone Ltd.',
+    date: 'September 2026',
+    certificateType: 'Certificate of Completion',
+    image: '/images/certificates/dataFoundations_gp.png',
+    url: 'https://www.grameenphone.academy/cert/8967ba193ae6',
+  },
+  {
+    category: 'AI & DATA',
+    title: 'AI-Powered Analytics',
+    organization: 'Grameenphone Ltd.',
+    date: 'September 2026',
+    certificateType: 'Certificate of Completion',
+    image: '/images/certificates/aiAnalytics_gp.png',
+    url: 'https://www.grameenphone.academy/cert/328de029d7fb',
+  },
+  {
+    category: 'AI & DATA',
+    title: 'From Insights to Influence',
+    organization: 'Grameenphone Ltd.',
+    date: 'September 2026',
+    certificateType: 'Certificate of Completion',
+    image: '/images/certificates/insights2influence_gp.png',
+    url: 'https://www.grameenphone.academy/cert/7acbf531d985',
+  },
+  {
+    category: 'PROFESSIONAL DEVELOPMENT',
+    title: 'Unlock Career Opportunities – ERP Decoded',
+    organization: 'Dot BD Solutions Limited',
+    date: 'December 2025',
+    certificateType: 'Certificate of Participation',
+    image: '/images/certificates/dotBD_career.png',
+  },
+  {
+    category: 'COMPETITION',
+    title: '1st IELC National English Language Carnival',
+    organization: 'Ideal English Language Club (IELC)',
+    date: 'January 2017',
+    description:
+      'Wall Magazine Competition. Associated with Ideal School and College.',
+    certificateType: 'Participation Certificate',
+    image: '/images/certificates/ielcPrize.png',
+  },
+  {
+    category: 'CERTIFICATE ARCHIVE',
+    title: 'Other Certificates and Crests',
+    organization: 'School achievements',
+    image: '/images/certificates/otherCertficates.png',
+    description:
+      'A collection of certificates and crests from school days.',
+  },
+  {
+    category: 'NATIONAL RECOGNITION',
+    title: "Children's Gathering with the Honorable President",
+    organization: 'Bangladesh Shishu Academy',
+    date: '2015',
+    certificateType: 'Official Participant Pass',
+    image: '/images/certificates/shishuAcademy.png',
+    description:
+      'Selected as a trainee of Bangladesh Shishu Academy to participate in the special children’s gathering with the Honorable President at Bangabhaban (2015).',
+  },
+  {
+    category: 'PERFORMING ARTS',
+    title: 'Classical Dance',
+    organization: 'Bangladesh Shishu Academy, Dhaka, Bangladesh',
+    date: 'July 2013 – June 2016',
+    certificateType: 'Completion Certificate',
+    image: '/images/certificates/dance_shishuAcademy.png',
+    description:
+      'Completed a three-year certificate course in Nrittyakala (Classical Dance), gaining experience in classical and contemporary dance forms. Performed in cultural programs and annual dance showcases, including events on BTV and Ittadi. Collaborated in choreography and group performances, strengthening teamwork, coordination and confidence.',
+  },
+  {
+    category: 'VISUAL ARTS',
+    title: 'Drawing and Painting',
+    organization: 'Bangladesh Shishu Academy, Dhaka, Bangladesh',
+    date: 'July 2010 – June 2013',
+    certificateType: 'Completion Certificate',
+    image: '/images/certificates/art_shishuAcademy.png',
+    description:
+      'Completed a three-year certificate course in drawing and painting, focusing on visual composition, creativity and fine arts fundamentals. Participated in art exhibitions and creative workshops, including activities associated with Channel i.',
+  },
+];
+
+// -------------------------------------------------------------
 // 01. HOMEPAGE
 // -------------------------------------------------------------
 export function Home() {
@@ -121,203 +403,73 @@ export function Home() {
   const [expSortAscending, setExpSortAscending] = useState(true);
   const [activeExpCardId, setActiveExpCardId] = useState(null);
 
-  const experienceItems = [
-    {
-      category: 'TEAM LEADERSHIP',
-      title: 'Head of Sub-Executives & Volunteers',
-      organization: 'East West University English Conversation Club (EWUECC)',
-      date: '2024 - 2025',
-      description:
-        'Progressed from volunteer to Sub-Executive of Arts & Crafts, then Head. Led event and workshop coordination and designed promotional posters in Canva.',
-      image: '/images/orgs/ewuecc.png',
-      imageAlt: 'EWUECC organization logo',
-      postUrl: 'https://www.facebook.com/photo.php?fbid=1224625912453564&id=100047185015473&set=a.748099713439522',
-      tags: ['Leadership', 'Events', 'Canva'],
-    },
-    {
-      category: 'CAMPUS OUTREACH',
-      title: 'Campus Crew',
-      organization: 'Banglay IELTS & Immigration Center',
-      date: 'Feb 2025 - Sep 2025',
-      description:
-        'Represented the organization on campus, promoted events through social media campaigns and supported local outreach.',
-      image: '/images/orgs/biic.png',
-      imageAlt: 'BIIC organization logo',
-      postUrl: 'https://www.facebook.com/photo.php?fbid=571666945933995&id=100092720820391&set=a.175838728850154',
-      tags: ['Outreach', 'Promotion', 'Communication'],
-    },
-    {
-      category: 'COMMUNITY INITIATIVES',
-      title: 'Sub-Executive',
-      organization: 'AHOBAN Foundation',
-      date: '2021 - 2024',
-      description:
-        'Progressed from Campus Ambassador to Sub-Executive, supporting social welfare, fundraising and community initiatives including Winter Warmers and Feast with Families.',
-      image: '/images/orgs/ahoban.png',
-      imageAlt: 'AHOBAN Foundation logo',
-      postUrl: 'https://www.facebook.com/photo.php?fbid=4682576128447326&id=224123104292673&set=a.231530316885285',
-      tags: ['Social Welfare', 'Fundraising', 'Teamwork'],
-    },
-    {
-      category: 'CAMPUS ENGAGEMENT',
-      title: 'Campus Ambassador',
-      organization: 'English Olympiad',
-      date: '2020 - 2022',
-      description:
-        'Supported event promotion, coordination and social media engagement for campus initiatives.',
-      image: '/images/orgs/eo.png',
-      imageAlt: 'English Olympiad organization logo',
-      postUrl: 'https://www.facebook.com/EnglishOlympiad/posts/sumaiya-jannat-arpa-campus-ambassador-english-olympiadideal-school-and-college-e/2078778598931050/',
-      tags: ['Event Promotion', 'Coordination'],
-    },
-    {
-      category: 'TECHNOLOGY & TEAMWORK',
-      title: 'Coordinator',
-      organization:
-        'ISTARC - Ideal Science and Technology Aiming Research Council',
-      date: '2018 - 2019',
-      description:
-        'Progressed from volunteer to Coordinator, supporting technology-related events, volunteer activities and event planning.',
-      image: '/images/orgs/istarc.png',
-      imageAlt: 'ISTARC organization logo',
-      tags: ['Technology', 'Volunteering', 'Planning'],
-    },
-  ];
+  const {
+    experience: liveExperience,
+    education: liveEducation,
+    certificates: liveCertificates,
+    reviews: liveReviews,
+    hasLoaded: portfolioHasLoaded,
+    error: portfolioError,
+  } = usePortfolioData();
+
+  const reviewItems = useMemo(() => {
+    if (portfolioHasLoaded) {
+      return Array.isArray(liveReviews) ? liveReviews.filter((r) => r && r.isPublished !== false) : [];
+    }
+    if (portfolioError) {
+      return reviews;
+    }
+    return Array.isArray(liveReviews) ? liveReviews : reviews;
+  }, [liveReviews, portfolioHasLoaded, portfolioError]);
+
+  const educationList = useMemo(() => {
+    if (portfolioHasLoaded) {
+      return Array.isArray(liveEducation) ? liveEducation : [];
+    }
+    if (portfolioError) {
+      return about.education || [];
+    }
+    return Array.isArray(liveEducation) ? liveEducation : (about.education || []);
+  }, [liveEducation, portfolioHasLoaded, portfolioError]);
+
+  const experienceItems = useMemo(() => {
+    if (portfolioHasLoaded) {
+      if (!liveExperience || !Array.isArray(liveExperience) || liveExperience.length === 0) {
+        return [];
+      }
+      return liveExperience
+        .filter((exp) => exp && exp.isPublished !== false)
+        .map((exp, idx) => normalizeExperienceItem(exp, idx))
+        .filter(Boolean);
+    }
+
+    if (portfolioError) {
+      return STATIC_EXPERIENCE_ITEMS.map((exp, idx) => normalizeExperienceItem(exp, idx));
+    }
+
+    return STATIC_EXPERIENCE_ITEMS.map((exp, idx) => normalizeExperienceItem(exp, idx));
+  }, [liveExperience, portfolioHasLoaded, portfolioError]);
 
   const displayedExperience = useMemo(() => {
     return expSortAscending ? [...experienceItems].reverse() : experienceItems;
   }, [expSortAscending, experienceItems]);
 
-  const credentialItems = [
-    {
-      category: 'UI/UX DESIGN',
-      title: 'UI/UX Design Career Track Program',
-      organization: 'OSTAD',
-      date: 'Issued August 2026',
-      certificateType: 'Certificate of Completion',
-      image: '/images/certificates/ostad_marks_uiux.png',
-      url: 'https://ostad.app/share/certificate/c47328-sumaiya-jannat-arpa',
-    },
-    {
-      category: 'UI/UX DESIGN',
-      title: 'UI/UX Design Career Track Program',
-      organization: 'OSTAD',
-      date: 'Issued August 2026',
-      certificateType: 'Certificate of Assessment',
-      image: '/images/certificates/ostad_certificate_uiux.png',
-      url: 'https://ostad.app/share/certificate/c47329-sumaiya-jannat-arpa',
-    },
-    {
-      category: 'ACADEMIC HONOR',
-      title: '100% Merit Scholarship',
-      organization: 'East West University',
-      date: 'March 2023',
-      description:
-        'Awarded for four years, from Fall 2022 to Summer 2026, on the basis of SSC and HSC results.',
-      image: '/images/certificates/meritEWU.png',
-      url: 'https://www.ewubd.edu/storage/app/uploads/public/633/955/5d0/6339555d01897026666955.pdf',
-    },
-    {
-      category: 'SCHOLARSHIP',
-      title: 'Medha Lalon Fund Scholarship',
-      organization: 'East West University',
-      date: 'September 2025',
-      description:
-        'Scholarship of BDT 45,000 covering Fall 2025, Spring 2026 and Summer 2026.',
-    },
-    {
-      category: 'AI & DATA',
-      title: 'Data Analytics in the AI Era',
-      organization: 'Grameenphone Ltd.',
-      date: 'October 2026',
-      certificateType: 'Certificate of Completion',
-      image: '/images/certificates/dataAnalytics_gp.png',
-      url: 'https://www.grameenphone.academy/cert/4d0d76a94ed7',
-    },
-    {
-      category: 'AI & DATA',
-      title: 'Data Foundations with AI',
-      organization: 'Grameenphone Ltd.',
-      date: 'September 2026',
-      certificateType: 'Certificate of Completion',
-      image: '/images/certificates/dataFoundations_gp.png',
-      url: 'https://www.grameenphone.academy/cert/8967ba193ae6',
-    },
-    {
-      category: 'AI & DATA',
-      title: 'AI-Powered Analytics',
-      organization: 'Grameenphone Ltd.',
-      date: 'September 2026',
-      certificateType: 'Certificate of Completion',
-      image: '/images/certificates/aiAnalytics_gp.png',
-      url: 'https://www.grameenphone.academy/cert/328de029d7fb',
-    },
-    {
-      category: 'AI & DATA',
-      title: 'From Insights to Influence',
-      organization: 'Grameenphone Ltd.',
-      date: 'September 2026',
-      certificateType: 'Certificate of Completion',
-      image: '/images/certificates/insights2influence_gp.png',
-      url: 'https://www.grameenphone.academy/cert/7acbf531d985',
-    },
-    {
-      category: 'PROFESSIONAL DEVELOPMENT',
-      title: 'Unlock Career Opportunities – ERP Decoded',
-      organization: 'Dot BD Solutions Limited',
-      date: 'December 2025',
-      certificateType: 'Certificate of Participation',
-      image: '/images/certificates/dotBD_career.png',
-    },
-    {
-      category: 'COMPETITION',
-      title: '1st IELC National English Language Carnival',
-      organization: 'Ideal English Language Club (IELC)',
-      date: 'January 2017',
-      description:
-        'Wall Magazine Competition. Associated with Ideal School and College.',
-      certificateType: 'Participation Certificate',
-      image: '/images/certificates/ielcPrize.png',
-    },
-    {
-      category: 'CERTIFICATE ARCHIVE',
-      title: 'Other Certificates and Crests',
-      organization: 'School achievements',
-      image: '/images/certificates/otherCertficates.png',
-      description:
-        'A collection of certificates and crests from school days.',
-    },
-    {
-      category: 'NATIONAL RECOGNITION',
-      title: "Children's Gathering with the Honorable President",
-      organization: 'Bangladesh Shishu Academy',
-      date: '2015',
-      certificateType: 'Official Participant Pass',
-      image: '/images/certificates/shishuAcademy.png',
-      description:
-        'Selected as a trainee of Bangladesh Shishu Academy to participate in the special children’s gathering with the Honorable President at Bangabhaban (2015).',
-    },
-    {
-      category: 'PERFORMING ARTS',
-      title: 'Classical Dance',
-      organization: 'Bangladesh Shishu Academy, Dhaka, Bangladesh',
-      date: 'July 2013 – June 2016',
-      certificateType: 'Completion Certificate',
-      image: '/images/certificates/dance_shishuAcademy.png',
-      description:
-        'Completed a three-year certificate course in Nrittyakala (Classical Dance), gaining experience in classical and contemporary dance forms. Performed in cultural programs and annual dance showcases, including events on BTV and Ittadi. Collaborated in choreography and group performances, strengthening teamwork, coordination and confidence.',
-    },
-    {
-      category: 'VISUAL ARTS',
-      title: 'Drawing and Painting',
-      organization: 'Bangladesh Shishu Academy, Dhaka, Bangladesh',
-      date: 'July 2010 – June 2013',
-      certificateType: 'Completion Certificate',
-      image: '/images/certificates/art_shishuAcademy.png',
-      description:
-        'Completed a three-year certificate course in drawing and painting, focusing on visual composition, creativity and fine arts fundamentals. Participated in art exhibitions and creative workshops, including activities associated with Channel i.',
-    },
-  ];
+  const credentialItems = useMemo(() => {
+    if (liveCertificates && liveCertificates.length > 0) {
+      return liveCertificates.map((cert) => ({
+        category: (cert.category || 'CREDENTIAL').toUpperCase(),
+        title: cert.title,
+        organization: cert.organization || cert.issuer,
+        date: cert.dateIssued || cert.date || '',
+        certificateType: cert.certificateType || '',
+        image: cert.imageUrl || cert.image,
+        url: cert.url || '',
+        description: cert.description || '',
+        tags: cert.tags || [],
+      }));
+    }
+    return STATIC_CREDENTIAL_ITEMS;
+  }, [liveCertificates]);
 
   useEffect(() => {
     if (
@@ -478,6 +630,7 @@ export function Home() {
           <div className="ref-panels-stack">
             {/* 01. Education — Three Bent Vertical Stacked Cards */}
             <article
+              id="education"
               className="ref-panel-card ref-panel-card-education"
               aria-labelledby="panel-heading-education"
             >
@@ -491,121 +644,106 @@ export function Home() {
               </div>
 
               <div className="education-bent-stack" role="list" aria-label="Education milestones">
-                {/* 01. East West University */}
-                <div
-                  className={`education-bent-card edu-bent-card-1 ${activeEduCard === 1 ? 'is-expanded is-active' : ''}`}
-                  role="button"
-                  tabIndex={0}
-                  aria-expanded={activeEduCard === 1}
-                  aria-label="East West University education details. Tap or click to expand or collapse"
-                  onClick={() => setActiveEduCard((prev) => (prev === 1 ? null : 1))}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      setActiveEduCard((prev) => (prev === 1 ? null : 1));
-                    }
-                  }}
-                >
-                  <div className="edu-card-glass-sheen" aria-hidden="true" />
-                  <div className="edu-card-inner">
-                    <div className="edu-card-topbar">
-                      <div className="edu-institution-cluster">
-                        <span className="edu-stage-tag">UNDERGRADUATE // B.SC.</span>
-                        <h4 className="edu-institution-name">East West University</h4>
+                {educationList.length > 0 ? (
+                  educationList.map((edu, idx) => {
+                    const cardNum = idx + 1;
+                    const cardId = edu.id || cardNum;
+                    const isExpanded = activeEduCard === cardId;
+                    const bentClass = `edu-bent-card-${(idx % 3) + 1}`;
+                    const stageTag = edu.stageTag || edu.stage_tag || (idx === 0 ? 'UNDERGRADUATE // B.SC.' : (idx === 1 ? 'HIGHER SECONDARY // HSC' : 'SECONDARY // SSC'));
+                    const isMerit = (Array.isArray(edu.highlights) && edu.highlights.some((h) => typeof h === 'string' && h.toLowerCase().includes('merit'))) ||
+                      (typeof edu.details === 'string' && edu.details.toLowerCase().includes('merit'));
+
+                    const institutionName = edu.institution || edu.school || 'Academic Institution';
+                    const dateText = edu.dates || edu.timeline || '';
+                    const degreeText = edu.degree || 'Degree Program';
+                    const majorText = typeof edu.major === 'string' && edu.major.trim() ? edu.major.trim() : '';
+                    const gpaText = edu.gpa != null && String(edu.gpa).trim() !== '' ? String(edu.gpa).trim() : '';
+                    const locationText = typeof edu.location === 'string' && edu.location.trim() ? edu.location.trim() : '';
+                    const statusText = typeof edu.status === 'string' && edu.status.trim() ? edu.status.trim() : '';
+                    const detailsText = typeof edu.details === 'string' && edu.details.trim() ? edu.details.trim() : '';
+                    const courseworkList = Array.isArray(edu.coursework) ? edu.coursework : [];
+
+                    return (
+                      <div
+                        key={edu.id || idx}
+                        className={`education-bent-card ${bentClass} ${isExpanded ? 'is-expanded is-active' : ''}`}
+                        role="button"
+                        tabIndex={0}
+                        aria-expanded={isExpanded}
+                        aria-label={`${institutionName} education details. Tap or click to expand or collapse`}
+                        onClick={() => setActiveEduCard((prev) => (prev === cardId ? null : cardId))}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            setActiveEduCard((prev) => (prev === cardId ? null : cardId));
+                          }
+                        }}
+                      >
+                        <div className="edu-card-glass-sheen" aria-hidden="true" />
+                        <div className="edu-card-inner">
+                          <div className="edu-card-topbar">
+                            <div className="edu-institution-cluster">
+                              {stageTag && <span className="edu-stage-tag">{stageTag}</span>}
+                              <h4 className="edu-institution-name">{institutionName}</h4>
+                            </div>
+                            {dateText && (
+                              <span className="edu-date-badge">{dateText}</span>
+                            )}
+                          </div>
+
+                          <p className="edu-qualification">
+                            {degreeText}
+                            {majorText ? (
+                              <> · <span className="edu-major-emphasis">{majorText.toLowerCase().startsWith('major:') ? majorText : `Major: ${majorText}`}</span></>
+                            ) : null}
+                          </p>
+
+                          <div className="edu-highlights-pills">
+                            {isMerit && (
+                              <span className="edu-pill edu-pill-merit">
+                                <span className="edu-pill-icon">★</span> 100% Merit Scholarship Awardee
+                              </span>
+                            )}
+                            {gpaText && (
+                              <span className="edu-pill edu-pill-cgpa">
+                                {gpaText.toLowerCase().includes('gpa') ? gpaText : `CGPA: ${gpaText}`}
+                              </span>
+                            )}
+                            {locationText && <span className="edu-pill">{locationText}</span>}
+                            {statusText && !gpaText && <span className="edu-pill">{statusText}</span>}
+                          </div>
+
+                          {isExpanded && detailsText && (
+                            <p className="edu-expanded-details" style={{ marginTop: '0.75rem', fontSize: '0.88rem', color: 'var(--text-secondary, #94a3b8)', lineHeight: 1.6 }}>
+                              {detailsText}
+                            </p>
+                          )}
+
+                          {isExpanded && courseworkList.length > 0 && (
+                            <div className="coursework-tags mt-2" style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginTop: '0.5rem' }}>
+                              {courseworkList.map((c, cIdx) => (
+                                <span key={cIdx} className="tool-pill" style={{ fontSize: '0.75rem', padding: '0.2rem 0.5rem', background: 'rgba(148, 163, 184, 0.1)', borderRadius: '4px' }}>
+                                  {typeof c === 'string' ? c : (c?.name || String(c))}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      <span className="edu-date-badge">Fall 2022 — Summer 2026</span>
-                    </div>
-
-                    <p className="edu-qualification">
-                      B.Sc. in Computer Science &amp; Engineering · <span className="edu-major-emphasis">Major: Software Engineering</span>
-                    </p>
-
-                    <div className="edu-highlights-pills">
-                      <span className="edu-pill edu-pill-merit">
-                        <span className="edu-pill-icon">★</span> 100% Merit Scholarship Awardee
-                      </span>
-                      <span className="edu-pill edu-pill-cgpa">CGPA: 3.48 / 4.00</span>
-                      <span className="edu-pill">Dhaka, Bangladesh</span>
-                    </div>
+                    );
+                  })
+                ) : (
+                  <div className="empty-catalog-state" style={{ padding: '2rem 1rem', textAlign: 'center', color: 'var(--text-secondary, #94a3b8)' }}>
+                    <p>No education milestones recorded yet.</p>
                   </div>
-                </div>
-
-                {/* 02. Ideal School and College - HSC */}
-                <div
-                  className={`education-bent-card edu-bent-card-2 ${activeEduCard === 2 ? 'is-expanded is-active' : ''}`}
-                  role="button"
-                  tabIndex={0}
-                  aria-expanded={activeEduCard === 2}
-                  aria-label="Ideal School and College HSC education details. Tap or click to expand or collapse"
-                  onClick={() => setActiveEduCard((prev) => (prev === 2 ? null : 2))}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      setActiveEduCard((prev) => (prev === 2 ? null : 2));
-                    }
-                  }}
-                >
-                  <div className="edu-card-glass-sheen" aria-hidden="true" />
-                  <div className="edu-card-inner">
-                    <div className="edu-card-topbar">
-                      <div className="edu-institution-cluster">
-                        <span className="edu-stage-tag">HIGHER SECONDARY // HSC</span>
-                        <h4 className="edu-institution-name">Ideal School and College</h4>
-                      </div>
-                      <span className="edu-date-badge">Passing Year: 2021</span>
-                    </div>
-
-                    <p className="edu-qualification">
-                      Higher Secondary Certificate (HSC) · <span className="edu-major-emphasis">Science Group</span>
-                    </p>
-
-                    <div className="edu-highlights-pills">
-                      <span className="edu-pill edu-pill-merit">GPA: 5.00 / 5.00</span>
-                      <span className="edu-pill">Motijheel, Dhaka</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 03. Ideal School and College - SSC */}
-                <div
-                  className={`education-bent-card edu-bent-card-3 ${activeEduCard === 3 ? 'is-expanded is-active' : ''}`}
-                  role="button"
-                  tabIndex={0}
-                  aria-expanded={activeEduCard === 3}
-                  aria-label="Ideal School and College SSC education details. Tap or click to expand or collapse"
-                  onClick={() => setActiveEduCard((prev) => (prev === 3 ? null : 3))}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      setActiveEduCard((prev) => (prev === 3 ? null : 3));
-                    }
-                  }}
-                >
-                  <div className="edu-card-glass-sheen" aria-hidden="true" />
-                  <div className="edu-card-inner">
-                    <div className="edu-card-topbar">
-                      <div className="edu-institution-cluster">
-                        <span className="edu-stage-tag">SECONDARY // SSC</span>
-                        <h4 className="edu-institution-name">Ideal School and College</h4>
-                      </div>
-                      <span className="edu-date-badge">Passing Year: 2019</span>
-                    </div>
-
-                    <p className="edu-qualification">
-                      Secondary School Certificate (SSC) · <span className="edu-major-emphasis">Science Group</span>
-                    </p>
-
-                    <div className="edu-highlights-pills">
-                      <span className="edu-pill edu-pill-merit">GPA: 5.00 / 5.00</span>
-                      <span className="edu-pill">Motijheel, Dhaka</span>
-                    </div>
-                  </div>
-                </div>
+                )}
               </div>
             </article>
 
             {/* 02. Experience & Volunteering — Ascending Staircase Experience Layout */}
             <article
+              id="experience"
               className="ref-panel-card ref-panel-card-experience visual-stack-panel staircase-experience-panel"
               aria-labelledby="panel-heading-experience"
             >
@@ -644,115 +782,123 @@ export function Home() {
                 role="list"
                 aria-label="Ascending Experience career staircase"
               >
-                {displayedExperience.map((item, idx) => {
-                  const stepNumber = idx + 1;
-                  const isExpanded = activeExpCardId === item.title;
-                  return (
-                    <div
-                      className={`staircase-step-card staircase-step-${stepNumber} ${isExpanded ? 'is-expanded is-active' : ''}`}
-                      key={item.title}
-                      role="listitem"
-                      tabIndex={0}
-                      aria-expanded={isExpanded}
-                      aria-label={`${item.title} at ${item.organization}. Click or tap to expand`}
-                      onClick={() => setActiveExpCardId((prev) => (prev === item.title ? null : item.title))}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault();
-                          setActiveExpCardId((prev) => (prev === item.title ? null : item.title));
-                        }
-                      }}
-                    >
-                      <div className="staircase-step-tread-accent" aria-hidden="true" />
-                      <div className="exp-card-media-side" aria-hidden="true">
-                        {item.image ? (
-                          <img
-                            className="exp-card-media-img exp-org-logo"
-                            src={item.image}
-                            alt={item.imageAlt || item.organization}
-                            loading="lazy"
-                          />
-                        ) : (
-                          <div className="exp-card-media-ph exp-org-logo-ph" aria-hidden="true">
-                            {item.organization.slice(0, 2).toUpperCase()}
-                          </div>
-                        )}
-                      </div>
-                      <div className="exp-layered-card-inner">
-                        <div className="exp-layered-top">
-                          <div className="exp-org-brand">
-                            <div className="exp-org-meta">
-                              <div className="staircase-step-meta-row">
-                                <span className="exp-category-tag">{item.category}</span>
+                {displayedExperience.length === 0 ? (
+                  <div className="empty-catalog-state" style={{ width: '100%', textAlign: 'center', padding: '3rem 1rem', color: 'var(--text-secondary, #94a3b8)' }}>
+                    <p>No experience milestones recorded yet.</p>
+                  </div>
+                ) : (
+                  displayedExperience.map((item, idx) => {
+                    const stepNumber = (idx % 5) + 1;
+                    const isExpanded = activeExpCardId === item.title;
+                    return (
+                      <div
+                        className={`staircase-step-card staircase-step-${stepNumber} ${isExpanded ? 'is-expanded is-active' : ''}`}
+                        key={`${item.title}-${idx}`}
+                        role="listitem"
+                        tabIndex={0}
+                        aria-expanded={isExpanded}
+                        aria-label={`${item.title} at ${item.organization}. Click or tap to expand`}
+                        onClick={() => setActiveExpCardId((prev) => (prev === item.title ? null : item.title))}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            setActiveExpCardId((prev) => (prev === item.title ? null : item.title));
+                          }
+                        }}
+                      >
+                        <div className="staircase-step-tread-accent" aria-hidden="true" />
+                        <div className="exp-card-media-side" aria-hidden="true">
+                          {item.image ? (
+                            <img
+                              className="exp-card-media-img exp-org-logo"
+                              src={item.image}
+                              alt={item.imageAlt || item.organization}
+                              loading="lazy"
+                            />
+                          ) : (
+                            <div className="exp-card-media-ph exp-org-logo-ph" aria-hidden="true">
+                              {String(item.organization || item.org || item.title || 'EX').slice(0, 2).toUpperCase()}
+                            </div>
+                          )}
+                        </div>
+                        <div className="exp-layered-card-inner">
+                          <div className="exp-layered-top">
+                            <div className="exp-org-brand">
+                              <div className="exp-org-meta">
+                                <div className="staircase-step-meta-row">
+                                  <span className="exp-category-tag">{item.category}</span>
+                                </div>
+                                <span className="exp-org-name">{item.organization}</span>
                               </div>
-                              <span className="exp-org-name">{item.organization}</span>
                             </div>
+
+                            {item.date && (
+                              <span className="exp-date-pill">{item.date}</span>
+                            )}
                           </div>
 
-                          {item.date && (
-                            <span className="exp-date-pill">{item.date}</span>
-                          )}
-                        </div>
+                          <div className="exp-layered-body">
+                            <h4 className="exp-role-title">{item.title}</h4>
+                            {isExpanded && item.description && (
+                              <p className="exp-description">{item.description}</p>
+                            )}
+                          </div>
 
-                        <div className="exp-layered-body">
-                          <h4 className="exp-role-title">{item.title}</h4>
-                          {isExpanded && item.description && (
-                            <p className="exp-description">{item.description}</p>
+                          {/* Inline expanded details when active */}
+                          {isExpanded && item.postUrl && (
+                            <div className="staircase-expanded-details">
+                              <a
+                                href={item.postUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="staircase-announcement-link"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                Official post announcement ↗
+                              </a>
+                            </div>
                           )}
-                        </div>
 
-                        {/* Inline expanded details when active */}
-                        {isExpanded && item.postUrl && (
-                          <div className="staircase-expanded-details">
-                            <a
-                              href={item.postUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="staircase-announcement-link"
-                              onClick={(e) => e.stopPropagation()}
+                          <div className="exp-layered-footer">
+                            {item.tags?.length > 0 && (
+                              <div className="exp-tags-cluster">
+                                {item.tags.map((tag) => (
+                                  <span className="exp-tag-chip" key={tag}>
+                                    {tag}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+
+                            <button
+                              type="button"
+                              className="exp-detail-trigger"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setActiveExpCardId((prev) => (prev === item.title ? null : item.title));
+                              }}
+                              aria-expanded={isExpanded}
+                              aria-label={isExpanded ? `Hide details for ${item.title}` : `View details for ${item.title}`}
                             >
-                              Official post announcement ↗
-                            </a>
+                              <span>{isExpanded ? 'View less' : 'View details'}</span>
+                              <span aria-hidden="true">{isExpanded ? ' ✕' : ' ↗'}</span>
+                            </button>
                           </div>
-                        )}
-
-                        <div className="exp-layered-footer">
-                          {item.tags?.length > 0 && (
-                            <div className="exp-tags-cluster">
-                              {item.tags.map((tag) => (
-                                <span className="exp-tag-chip" key={tag}>
-                                  {tag}
-                                </span>
-                              ))}
-                            </div>
-                          )}
-
-                          <button
-                            type="button"
-                            className="exp-detail-trigger"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setActiveExpCardId((prev) => (prev === item.title ? null : item.title));
-                            }}
-                            aria-expanded={isExpanded}
-                            aria-label={isExpanded ? `Hide details for ${item.title}` : `View details for ${item.title}`}
-                          >
-                            <span>{isExpanded ? 'View less' : 'View details'}</span>
-                            <span aria-hidden="true">{isExpanded ? ' ✕' : ' ↗'}</span>
-                          </button>
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })
+                )}
               </div>
             </article>
 
             {/* 03. Awards & Certifications — Refined Slideshow */}
             <article
+              id="acknowledgements"
               className="ref-panel-card ref-panel-card-awards visual-stack-panel"
               aria-labelledby="panel-heading-awards"
             >
+              <span id="awards" className="section-anchor-hidden" aria-hidden="true" />
               <div className="ref-panel-heading-row">
                 <div>
                   <h3 id="panel-heading-awards" className="ref-panel-title">
@@ -1120,12 +1266,13 @@ export function Home() {
             title={<>Peer Endorsements &amp; <span className="ref-about-heading-bold">Recommendations</span></>}
           />
 
-          <ReviewsSection items={reviews} />
+          <ReviewsSection items={reviewItems} />
         </div>
       </section>
 
       {/* 07. GET TO KNOW SUMAIYA (FAQ SECTION) */}
       <section id="faq" className="page-section section-faq">
+        <span id="questions" className="section-anchor-hidden" aria-hidden="true" />
         <div className="site-wrapper">
           <SectionHeader
             title={<>Get to Know <span className="ref-about-heading-bold">Sumaiya</span></>}
@@ -1143,8 +1290,11 @@ export function Home() {
 export function Work() {
   usePageTitle('Selected Work');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const { projects: liveProjects, categories: liveCategories } = useProjects();
+  const allProjects = (liveProjects && liveProjects.length > 0) ? liveProjects : projects;
+  const allCategories = (liveCategories && Object.keys(liveCategories).length > 0) ? liveCategories : categories;
 
-  const filtered = projects.filter(
+  const filtered = allProjects.filter(
     (p) => selectedCategory === 'all' || p.category === selectedCategory
   );
 
@@ -1153,7 +1303,7 @@ export function Work() {
       <header className="page-hero-header">
         <div className="site-wrapper">
           <span className="sec-tag">Project Archive</span>
-          <h1 className="page-hero-title">Selected Work &amp; <em>Case Studies.</em></h1>
+          <h1 className="page-hero-title">Selected Work &amp; <em>Featured Projects.</em></h1>
           <p className="page-hero-lead">
             Curated engineering projects, user-centered interaction designs, quality assurance matrices, and visual communications.
           </p>
@@ -1164,10 +1314,10 @@ export function Work() {
               aria-pressed={selectedCategory === 'all'}
               onClick={() => setSelectedCategory('all')}
             >
-              All Projects ({projects.length})
+              All Projects ({allProjects.length})
             </button>
-            {Object.values(categories).map((c) => {
-              const count = projects.filter((p) => p.category === c.id).length;
+            {Object.values(allCategories).map((c) => {
+              const count = allProjects.filter((p) => p.category === c.id).length;
               return (
                 <button
                   key={c.id}
@@ -1206,15 +1356,30 @@ export function Work() {
 }
 
 // -------------------------------------------------------------
-// 03. CASE STUDY DETAIL VIEW (/work/:slug)
-// Specialized templates for Software, UI/UX, SQA, and Graphic Design
+// 03. PROJECT OVERVIEW VIEW (/work/:slug)
+// Clean, elegant project presentation with metadata, cover, and links
 // -------------------------------------------------------------
 export function Project() {
   const { slug } = useParams();
-  const p = projects.find((x) => x.slug === slug);
+  const { projects: liveProjects, categories: liveCategories, loading } = useProjects();
+  const allProjects = (liveProjects && liveProjects.length > 0) ? liveProjects : projects;
+  const allCategories = (liveCategories && Object.keys(liveCategories).length > 0) ? liveCategories : categories;
+
+  const p = allProjects.find((x) => x.slug === slug);
   usePageTitle(p ? p.title : 'Project');
 
   if (!p) {
+    if (loading) {
+      return (
+        <div className="site-wrapper page-section">
+          <div className="not-found-box" style={{ opacity: 0.75 }}>
+            <span className="sec-tag">RETRIEVING ARCHIVE</span>
+            <h2>Loading Project...</h2>
+            <p>Fetching project details from portfolio archive.</p>
+          </div>
+        </div>
+      );
+    }
     return (
       <div className="site-wrapper page-section">
         <div className="not-found-box">
@@ -1227,106 +1392,72 @@ export function Project() {
     );
   }
 
-  const cat = categories[p.category] || { label: p.category, code: '00' };
+  const cat = allCategories[p.category] || { label: p.category, code: '00' };
 
-  // Category-specific section mapping
-  const categoryTemplates = {
-    software: [
-      { key: 'overview', title: '01. Overview' },
-      { key: 'problem', title: '02. Problem Definition' },
-      { key: 'features', title: '03. Core Features' },
-      { key: 'architecture', title: '04. System Architecture' },
-      { key: 'stack', title: '05. Technology Stack' },
-      { key: 'implementation', title: '06. Engineering Implementation' },
-      { key: 'testing', title: '07. Verification & Testing' },
-      { key: 'challenges', title: '08. Technical Challenges & Solutions' },
-      { key: 'futureImprovements', title: '09. Roadmap & Future Work' },
-    ],
-    uiux: [
-      { key: 'challenge', title: '01. Design Challenge' },
-      { key: 'research', title: '02. User Research & Methodology' },
-      { key: 'findings', title: '03. Key Insights & Opportunities' },
-      { key: 'personas', title: '04. User Personas' },
-      { key: 'journeyMaps', title: '05. Journey Mapping' },
-      { key: 'userFlows', title: '06. User Flows & IA' },
-      { key: 'wireframes', title: '07. Wireframes & Spatial Layout' },
-      { key: 'iterations', title: '08. Usability Testing & Iterations' },
-      { key: 'finalScreens', title: '09. High-Fidelity Design System' },
-      { key: 'prototype', title: '10. Interactive Prototype' },
-      { key: 'individualContribution', title: '11. Individual Contribution' },
-    ],
-    sqa: [
-      { key: 'scope', title: '01. Testing Scope & Boundaries' },
-      { key: 'testScenarios', title: '02. Test Scenarios' },
-      { key: 'testCases', title: '03. Test Cases Specification' },
-      { key: 'apiRequests', title: '04. API Verification Suite' },
-      { key: 'assertions', title: '05. Automated Assertions' },
-      { key: 'executionResults', title: '06. Execution Results & Pass Rate' },
-      { key: 'bugInvestigation', title: '07. Defect Investigation & Root Cause' },
-      { key: 'testReports', title: '08. Test Summary Report' },
-    ],
-    graphic: [
-      { key: 'brief', title: '01. Creative Brief' },
-      { key: 'targetAudience', title: '02. Target Audience' },
-      { key: 'creativeDirection', title: '03. Creative Direction & Theme' },
-      { key: 'visualDecisions', title: '04. Typographic & Color Decisions' },
-      { key: 'finalArtwork', title: '05. Final Deliverables' },
-      { key: 'toolsAndTechniques', title: '06. Tools & Production Prep' },
-      { key: 'contribution', title: '07. Designer Contribution' },
-    ],
-  };
-
-  const sectionsToRender = categoryTemplates[p.category] || [];
-
-  // Find next and previous projects for navigation
-  const currentIndex = projects.findIndex((x) => x.slug === slug);
-  const prevProject = currentIndex > 0 ? projects[currentIndex - 1] : null;
-  const nextProject = currentIndex < projects.length - 1 ? projects[currentIndex + 1] : null;
+  const hasRole = Boolean(p.role && p.role.trim());
+  const hasTimeline = Boolean(p.timeline && p.timeline.trim());
+  const hasStatus = Boolean(p.status && p.status.trim());
+  const hasTools = Array.isArray(p.tools) && p.tools.length > 0;
+  const hasLink = Boolean(p.link && p.link.trim());
+  const hasRepo = Boolean(p.repo && p.repo.trim());
+  const hasCover = Boolean(p.cover && p.cover.trim());
 
   return (
     <article className="case-study-page">
-      {/* CASE STUDY TOP BAR */}
+      {/* TOP NAVIGATION BAR */}
       <div className="cs-top-bar">
         <div className="site-wrapper cs-top-inner">
           <Link to="/work" className="cs-back-link">
             ← Back to Selected Work
           </Link>
           <span className="cs-category-badge">{cat.label}</span>
-          <span className="cs-index-counter">PROJECT [{p.orderNum || String(currentIndex + 1).padStart(2, '0')}]</span>
+          {p.orderNum ? (
+            <span className="cs-index-counter">PROJECT [#{p.orderNum}]</span>
+          ) : null}
         </div>
       </div>
 
-      {/* CASE STUDY HERO */}
+      {/* PROJECT HERO & DETAILS */}
       <header className="cs-hero-section">
         <div className="site-wrapper">
           <div className="cs-hero-grid">
             <div className="cs-hero-main">
-              <span className="sec-tag">{cat.tag || 'SPECIFICATION'} // {p.status}</span>
+              <span className="sec-tag">
+                {cat.tag || 'PROJECT'} {hasStatus ? `// ${p.status}` : ''}
+              </span>
               <h1 className="cs-main-title">{p.title}</h1>
-              <p className="cs-summary-lead">{p.summary}</p>
+              {p.summary ? <p className="cs-summary-lead">{p.summary}</p> : null}
             </div>
 
             <aside className="cs-meta-sidebar">
               <div className="cs-meta-box">
                 <div className="cs-meta-field">
-                  <span className="cs-meta-label">ROLE:</span>
-                  <span className="cs-meta-value">{p.role}</span>
+                  <span className="cs-meta-label">CATEGORY:</span>
+                  <span className="cs-meta-value">{cat.label}</span>
                 </div>
-                {p.timeline && (
+
+                {hasRole ? (
+                  <div className="cs-meta-field">
+                    <span className="cs-meta-label">ROLE:</span>
+                    <span className="cs-meta-value">{p.role}</span>
+                  </div>
+                ) : null}
+
+                {hasTimeline ? (
                   <div className="cs-meta-field">
                     <span className="cs-meta-label">TIMELINE:</span>
                     <span className="cs-meta-value">{p.timeline}</span>
                   </div>
-                )}
-                <div className="cs-meta-field">
-                  <span className="cs-meta-label">CATEGORY:</span>
-                  <span className="cs-meta-value">{cat.label}</span>
-                </div>
-                <div className="cs-meta-field">
-                  <span className="cs-meta-label">STATUS:</span>
-                  <span className="cs-meta-value">{p.status}</span>
-                </div>
-                {p.tools && p.tools.length > 0 && (
+                ) : null}
+
+                {hasStatus ? (
+                  <div className="cs-meta-field">
+                    <span className="cs-meta-label">STATUS:</span>
+                    <span className="cs-meta-value">{p.status}</span>
+                  </div>
+                ) : null}
+
+                {hasTools ? (
                   <div className="cs-meta-field">
                     <span className="cs-meta-label">TOOLS &amp; STACK:</span>
                     <div className="cs-tools-wrap">
@@ -1335,21 +1466,32 @@ export function Project() {
                       ))}
                     </div>
                   </div>
-                )}
-                {(p.link || p.repo) && (
+                ) : null}
+
+                {(hasLink || hasRepo) ? (
                   <div className="cs-meta-field cs-links-field">
-                    {p.link && (
-                      <a href={p.link} target="_blank" rel="noopener noreferrer" className="btn solid w-full text-center">
-                        {p.category === 'uiux' ? 'Behance Case Study ↗' : 'Live Application ↗'}
+                    {hasLink ? (
+                      <a
+                        href={p.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn solid w-full text-center"
+                      >
+                        {p.category === 'uiux' ? 'View Prototype / Design ↗' : 'Live Project ↗'}
                       </a>
-                    )}
-                    {p.repo && (
-                      <a href={p.repo} target="_blank" rel="noopener noreferrer" className="btn outline w-full text-center">
+                    ) : null}
+                    {hasRepo ? (
+                      <a
+                        href={p.repo}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn outline w-full text-center"
+                      >
                         Source Code ↗
                       </a>
-                    )}
+                    ) : null}
                   </div>
-                )}
+                ) : null}
               </div>
             </aside>
           </div>
@@ -1357,103 +1499,26 @@ export function Project() {
       </header>
 
       {/* COVER IMAGE */}
-      <div className="cs-cover-wrapper">
-        <div className="site-wrapper">
-          <Img
-            src={p.cover}
-            alt={p.coverAlt || `${p.title} featured preview`}
-            ratio={p.aspectRatio || '16/10'}
-            category={p.category}
-            label={p.title}
-          />
-        </div>
-      </div>
-
-      {/* EDITORIAL NARRATIVE SECTIONS */}
-      <section className="cs-content-section">
-        <div className="site-wrapper cs-content-grid">
-          <div className="cs-narrative-col">
-            {sectionsToRender.map((sec) => {
-              const content = p.sections?.[sec.key];
-              if (!content || content.trim() === '') return null;
-
-              return (
-                <section key={sec.key} className="cs-section-block">
-                  <h2 className="cs-section-heading">{sec.title}</h2>
-                  <p className="cs-section-body">{content}</p>
-                </section>
-              );
-            })}
-
-            {/* STRUCTURED EVIDENCE GALLERY */}
-            {p.evidence && p.evidence.length > 0 && (
-              <section className="cs-section-block cs-evidence-block">
-                <h2 className="cs-section-heading">Visual Evidence &amp; Artifacts</h2>
-                <div className="cs-evidence-grid">
-                  {p.evidence.map((ev, eIdx) => (
-                    <figure key={eIdx} className="cs-evidence-figure">
-                      <Img
-                        src={ev.src}
-                        alt={ev.alt || `Evidence ${eIdx + 1}`}
-                        ratio={ev.ratio || '16/10'}
-                        category={p.category}
-                        label={ev.alt}
-                      />
-                      {ev.caption && <figcaption className="cs-evidence-caption">{ev.caption}</figcaption>}
-                    </figure>
-                  ))}
-                </div>
-              </section>
-            )}
+      {hasCover ? (
+        <div className={`cs-cover-wrapper ${p.category === 'graphic' ? 'cs-cover-graphic' : ''}`}>
+          <div className="site-wrapper">
+            <Img
+              src={p.cover}
+              alt={p.coverAlt || `${p.title} preview`}
+              ratio={p.aspectRatio || '16/10'}
+              category={p.category}
+              label={p.title}
+            />
           </div>
-
-          <aside className="cs-contents-toc">
-            <div className="toc-sticky-box">
-              <span className="toc-title">Contents</span>
-              <ul className="toc-list">
-                {sectionsToRender.map((sec) => {
-                  if (!p.sections?.[sec.key]) return null;
-                  return (
-                    <li key={sec.key}>
-                      <span className="toc-bullet">▪</span>
-                      <span>{sec.title}</span>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          </aside>
         </div>
-      </section>
+      ) : null}
 
-      {/* NEXT / PREV PROJECT FOOTER */}
-      <nav className="cs-project-nav" aria-label="Project Navigation">
-        <div className="site-wrapper cs-nav-grid">
-          {prevProject ? (
-            <Link to={`/work/${prevProject.slug}`} className="cs-nav-item cs-nav-prev">
-              <span className="cs-nav-direction">← PREVIOUS PROJECT</span>
-              <span className="cs-nav-title">{prevProject.title}</span>
-              <span className="cs-nav-cat">{categories[prevProject.category]?.label}</span>
-            </Link>
-          ) : (
-            <div className="cs-nav-empty" />
-          )}
-
-          <Link to="/work" className="cs-nav-index-link">
-            All Projects Directory ↗
-          </Link>
-
-          {nextProject ? (
-            <Link to={`/work/${nextProject.slug}`} className="cs-nav-item cs-nav-next">
-              <span className="cs-nav-direction">NEXT PROJECT →</span>
-              <span className="cs-nav-title">{nextProject.title}</span>
-              <span className="cs-nav-cat">{categories[nextProject.category]?.label}</span>
-            </Link>
-          ) : (
-            <div className="cs-nav-empty" />
-          )}
-        </div>
-      </nav>
+      {/* FOOTER DIRECTORY LINK */}
+      <div className="site-wrapper" style={{ paddingTop: '1rem', paddingBottom: '4.5rem', textAlign: 'center' }}>
+        <Link to="/work" className="btn outline">
+          ← Return to All Projects
+        </Link>
+      </div>
     </article>
   );
 }
@@ -1561,6 +1626,10 @@ export function Gallery() {
 // -------------------------------------------------------------
 export function About() {
   usePageTitle('About');
+  const { education: liveEducation, hasLoaded: eduLoaded, error: eduError } = useEducation();
+  const educationList = eduLoaded
+    ? (Array.isArray(liveEducation) ? liveEducation : [])
+    : (eduError ? (about.education || []) : (Array.isArray(liveEducation) ? liveEducation : (about.education || [])));
 
   return (
     <div className="about-page">
@@ -1635,29 +1704,35 @@ export function About() {
             {/* EDUCATION */}
             <div className="education-detail-section">
               <h3 className="section-subheading">Formal Education</h3>
-              {(about.education || []).map((edu, idx) => (
-                <div key={idx} className="education-card">
-                  <div className="edu-header">
-                    <div>
-                      <h4 className="edu-degree">{edu.degree}</h4>
-                      <p className="edu-school">{edu.school || edu.institution} — {edu.location}</p>
-                    </div>
-                    <span className="edu-status">{edu.status || edu.timeline}</span>
-                  </div>
-                  <p className="edu-details">{edu.details}</p>
-
-                  {edu.coursework && edu.coursework.length > 0 && (
-                    <div className="edu-coursework-box">
-                      <span className="coursework-title">RELEVANT COURSEWORK:</span>
-                      <div className="coursework-tags">
-                        {edu.coursework.map((course, cIdx) => (
-                          <span key={cIdx} className="tool-pill">{course}</span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+              {educationList.length === 0 ? (
+                <div className="empty-catalog-state" style={{ padding: '1.5rem', textAlign: 'center', color: 'var(--text-secondary, #94a3b8)' }}>
+                  <p>No formal education records listed.</p>
                 </div>
-              ))}
+              ) : (
+                educationList.map((edu, idx) => (
+                  <div key={idx} className="education-card">
+                    <div className="edu-header">
+                      <div>
+                        <h4 className="edu-degree">{edu.degree}</h4>
+                        <p className="edu-school">{edu.school || edu.institution} — {edu.location}</p>
+                      </div>
+                      <span className="edu-status">{edu.status || edu.timeline}</span>
+                    </div>
+                    <p className="edu-details">{edu.details}</p>
+
+                    {edu.coursework && edu.coursework.length > 0 && (
+                      <div className="edu-coursework-box">
+                        <span className="coursework-title">RELEVANT COURSEWORK:</span>
+                        <div className="coursework-tags">
+                          {edu.coursework.map((course, cIdx) => (
+                            <span key={cIdx} className="tool-pill">{course}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))
+              )}
             </div>
 
             {/* ACTIONS */}
@@ -1681,6 +1756,10 @@ export function About() {
 // -------------------------------------------------------------
 export function Experience() {
   usePageTitle('Experience & Leadership');
+  const { experience: liveExperience, hasLoaded, error } = useExperience();
+  const expList = hasLoaded
+    ? (Array.isArray(liveExperience) ? liveExperience : [])
+    : (error ? experience : (Array.isArray(liveExperience) ? liveExperience : experience));
 
   return (
     <div className="experience-page">
@@ -1696,7 +1775,13 @@ export function Experience() {
 
       <section className="page-section">
         <div className="site-wrapper">
-          <Timeline entries={experience} />
+          {expList.length === 0 ? (
+            <div className="empty-catalog-state" style={{ padding: '3rem 1rem', textAlign: 'center', color: 'var(--text-secondary, #94a3b8)' }}>
+              <p>No experience milestones recorded yet.</p>
+            </div>
+          ) : (
+            <Timeline entries={expList} />
+          )}
         </div>
       </section>
     </div>
@@ -1708,6 +1793,15 @@ export function Experience() {
 // -------------------------------------------------------------
 export function Education() {
   usePageTitle('Education & Achievements');
+  const { education: liveEducation, hasLoaded: eduLoaded, error: eduError } = useEducation();
+  const { certificates: liveCertificates, hasLoaded: certLoaded, error: certError } = useCertificates();
+
+  const eduList = eduLoaded
+    ? (Array.isArray(liveEducation) ? liveEducation : [])
+    : (eduError ? (about.education || []) : (Array.isArray(liveEducation) ? liveEducation : (about.education || [])));
+  const certList = certLoaded
+    ? (Array.isArray(liveCertificates) ? liveCertificates : [])
+    : (certError ? (about.certificates || []) : (Array.isArray(liveCertificates) ? liveCertificates : (about.certificates || [])));
 
   return (
     <div className="achievements-page">
@@ -1726,21 +1820,27 @@ export function Education() {
           {/* EDUCATION */}
           <div className="cred-col">
             <h2 className="cred-col-title">01. Formal Education</h2>
-            {(about.education || []).map((edu, idx) => (
-              <article key={idx} className="cred-card">
-                <span className="cred-date">{edu.dates || edu.timeline}</span>
-                <h3 className="cred-title">{edu.degree}</h3>
-                <p className="cred-issuer">{edu.school || edu.institution} ({edu.location})</p>
-                <p className="cred-desc">{edu.details}</p>
-                {edu.coursework && edu.coursework.length > 0 && (
-                  <div className="coursework-tags mt-2">
-                    {edu.coursework.map((c, cIdx) => (
-                      <span key={cIdx} className="tool-pill">{c}</span>
-                    ))}
-                  </div>
-                )}
-              </article>
-            ))}
+            {eduList.length === 0 ? (
+              <div className="empty-catalog-state" style={{ padding: '1.5rem', textAlign: 'center', color: 'var(--text-secondary, #94a3b8)' }}>
+                <p>No formal education records listed.</p>
+              </div>
+            ) : (
+              eduList.map((edu, idx) => (
+                <article key={idx} className="cred-card">
+                  <span className="cred-date">{edu.dates || edu.timeline}</span>
+                  <h3 className="cred-title">{edu.degree}</h3>
+                  <p className="cred-issuer">{edu.school || edu.institution} {edu.location ? `(${edu.location})` : ''}</p>
+                  <p className="cred-desc">{edu.details}</p>
+                  {edu.coursework && edu.coursework.length > 0 && (
+                    <div className="coursework-tags mt-2">
+                      {edu.coursework.map((c, cIdx) => (
+                        <span key={cIdx} className="tool-pill">{c}</span>
+                      ))}
+                    </div>
+                  )}
+                </article>
+              ))
+            )}
           </div>
 
           {/* SCHOLARSHIPS & HONORS */}
@@ -1768,19 +1868,25 @@ export function Education() {
           {/* CERTIFICATIONS */}
           <div className="cred-col">
             <h2 className="cred-col-title">03. Verified Credentials</h2>
-            {(about.certificates || []).map((cert, idx) => (
-              <article key={idx} className="cred-card">
-                <span className="cred-date">{cert.date || cert.dates}</span>
-                <h3 className="cred-title">{cert.title}</h3>
-                <p className="cred-issuer">{cert.issuer}</p>
-                <p className="cred-desc">{cert.credentialId}</p>
-                {cert.url && (
-                  <a href={cert.url} target="_blank" rel="noopener noreferrer" className="editorial-link mt-2">
-                    Verify Credential ↗
-                  </a>
-                )}
-              </article>
-            ))}
+            {certList.length === 0 ? (
+              <div className="empty-catalog-state" style={{ padding: '1.5rem', textAlign: 'center', color: 'var(--text-secondary, #94a3b8)' }}>
+                <p>No verified credentials listed.</p>
+              </div>
+            ) : (
+              certList.map((cert, idx) => (
+                <article key={idx} className="cred-card">
+                  <span className="cred-date">{cert.dateIssued || cert.date || cert.dates}</span>
+                  <h3 className="cred-title">{cert.title}</h3>
+                  <p className="cred-issuer">{cert.organization || cert.issuer}</p>
+                  <p className="cred-desc">{cert.description || cert.certificateType || cert.credentialId}</p>
+                  {cert.url && (
+                    <a href={cert.url} target="_blank" rel="noopener noreferrer" className="editorial-link mt-2">
+                      Verify Credential ↗
+                    </a>
+                  )}
+                </article>
+              ))
+            )}
           </div>
         </div>
       </section>

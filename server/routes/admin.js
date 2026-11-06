@@ -1,8 +1,13 @@
-
 import { Router } from "express";
 
 import { getDatabaseClient } from "../db/client.js";
 import { requireAdmin } from "../middleware/auth/requireAdmin.js";
+import adminProjectsRouter from "./adminProjects.js";
+import adminSkillsRouter from "./adminSkills.js";
+import adminExperienceRouter from "./adminExperience.js";
+import adminEducationRouter from "./adminEducation.js";
+import adminCertificatesRouter from "./adminCertificates.js";
+import adminReviewsRouter from "./adminReviews.js";
 
 const router = Router();
 
@@ -41,5 +46,13 @@ router.get("/overview", async (req, res, next) => {
     next(error);
   }
 });
+
+// Admin Sub-Routers
+router.use(adminProjectsRouter);
+router.use(adminSkillsRouter);
+router.use(adminExperienceRouter);
+router.use(adminEducationRouter);
+router.use(adminCertificatesRouter);
+router.use(adminReviewsRouter);
 
 export default router;

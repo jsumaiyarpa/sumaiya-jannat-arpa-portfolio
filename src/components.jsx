@@ -2,9 +2,12 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { site } from './data/site.js';
 import { categories, projects } from './data/projects.js';
+import { useProjects } from './context/ProjectsContext.jsx';
 import { skillCategories } from './data/skills.js';
+import { useSkills } from './context/PortfolioDataContext.jsx';
 import { githubConfig, languageColors, formatRelativeDate, fetchAdditionalRepos } from './data/github.js';
 import { faqData } from './data/faq.js';
+import { reviews as fallbackReviews } from './data/reviews.js';
 
 export function usePageTitle(t) {
   useEffect(() => {
@@ -241,7 +244,23 @@ export function ArchitecturalPlaceholder({ category = 'software', label = '', ra
 // Loads real image if src is defined, else renders category architectural vector
 // -------------------------------------------------------------
 export function Img({ src, alt = '', ratio = '16/10', label = '', category = 'software', className = '' }) {
+  const isGraphic = category === 'graphic';
+
   if (src && src.trim() !== '') {
+    if (isGraphic) {
+      return (
+        <div className={`img-wrapper img-wrapper-graphic ${className}`}>
+          <img
+            className="img img-graphic"
+            src={src}
+            alt={alt || label}
+            loading="lazy"
+            decoding="async"
+          />
+        </div>
+      );
+    }
+
     return (
       <div className={`img-wrapper ${className}`} style={{ aspectRatio: ratio }}>
         <img
@@ -257,7 +276,7 @@ export function Img({ src, alt = '', ratio = '16/10', label = '', category = 'so
   }
 
   return (
-    <div className={`img-wrapper ${className}`}>
+    <div className={`img-wrapper ${isGraphic ? 'img-wrapper-graphic' : ''} ${className}`}>
       <ArchitecturalPlaceholder category={category} label={label || alt} ratio={ratio} />
     </div>
   );
@@ -507,6 +526,8 @@ export function KeywordMarquee() {
 // arrow controls, keyboard navigation, touch/swipe, and preserved links.
 // -------------------------------------------------------------
 export function ProjectCarousel({ projects = [] }) {
+  const { categories: ctxCategories } = useProjects();
+  const allCategories = (ctxCategories && Object.keys(ctxCategories).length > 0) ? ctxCategories : categories;
   const [currentIndex, setCurrentIndex] = useState(0);
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
@@ -588,7 +609,7 @@ export function ProjectCarousel({ projects = [] }) {
             const isNext = offset === 1;
             const isVisible = isCurrent || isPrev || isNext;
 
-            const cat = categories[proj.category] || { label: proj.category, tag: 'WORK' };
+            const cat = allCategories[proj.category] || { label: proj.category, tag: 'WORK' };
 
             return (
               <div
@@ -615,7 +636,7 @@ export function ProjectCarousel({ projects = [] }) {
                     to={`/work/${proj.slug}`}
                     className="carousel-media-frame"
                     tabIndex={isCurrent ? 0 : -1}
-                    aria-label={`Open case study: ${proj.title}`}
+                    aria-label={`Open project details: ${proj.title}`}
                   >
                     <Img
                       src={proj.cover}
@@ -674,7 +695,7 @@ export function ProjectCarousel({ projects = [] }) {
                           className="btn solid carousel-btn-sm"
                           tabIndex={isCurrent ? 0 : -1}
                         >
-                          Case Study ↗
+                          View Project ↗
                         </Link>
                       </div>
                     </div>
@@ -756,25 +777,40 @@ export function ProjectCarousel({ projects = [] }) {
 // Open editorial typography list without arbitrary progress bars
 // -------------------------------------------------------------
 export function SkillsOverview() {
+  const { skills: liveSkills, hasLoaded, error } = useSkills();
+  const categories = hasLoaded
+    ? (Array.isArray(liveSkills) ? liveSkills : [])
+    : (error ? skillCategories : (Array.isArray(liveSkills) && liveSkills.length > 0 ? liveSkills : skillCategories));
+
   return (
     <div className="skills-editorial-grid">
-      {skillCategories.map((cat) => (
-        <article key={cat.id} className="skill-editorial-col">
-          <div className="skill-cat-header">
-            <span className="skill-cat-tag">0{cat.code} · {cat.id.toUpperCase()}</span>
-            <h3 className="skill-cat-title">{cat.title}</h3>
-          </div>
-          <p className="skill-cat-blurb">{cat.blurb}</p>
-          <ul className="skill-competency-list">
-            {cat.skills.map((skill, sIdx) => (
-              <li key={sIdx} className="skill-competency-item">
-                <span className="skill-name">{skill.name}</span>
-                <span className="skill-desc">{skill.level}</span>
-              </li>
-            ))}
-          </ul>
-        </article>
-      ))}
+      {categories.length === 0 ? (
+        <div className="empty-catalog-state" style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary, #94a3b8)', gridColumn: '1 / -1' }}>
+          <p>No skills recorded yet.</p>
+        </div>
+      ) : (
+        categories.map((cat) => (
+          <article key={cat.id} className="skill-editorial-col">
+            <div className="skill-cat-header">
+              <span className="skill-cat-tag">0{cat.code || 1} · {cat.id.toUpperCase()}</span>
+              <h3 className="skill-cat-title">{cat.title}</h3>
+            </div>
+            <p className="skill-cat-blurb">{cat.blurb}</p>
+            <ul className="skill-competency-list">
+              {(cat.skills || []).map((skill, sIdx) => {
+                const name = typeof skill === 'string' ? skill : skill.name;
+                const level = (typeof skill === 'object' && skill.level) ? skill.level : 'Core Competency';
+                return (
+                  <li key={sIdx} className="skill-competency-item">
+                    <span className="skill-name">{name}</span>
+                    <span className="skill-desc">{level}</span>
+                  </li>
+                );
+              })}
+            </ul>
+          </article>
+        ))
+      )}
     </div>
   );
 }
@@ -785,11 +821,18 @@ export function SkillsOverview() {
 // -------------------------------------------------------------
 export function ProjectCard({ project, index = 0, variant = 'default' }) {
   const p = project;
-  const cat = categories[p.category] || { label: p.category };
+  const { categories: ctxCategories } = useProjects();
+  const allCategories = (ctxCategories && Object.keys(ctxCategories).length > 0) ? ctxCategories : categories;
+  const cat = allCategories[p.category] || { label: p.category };
+  const isGraphic = p.category === 'graphic';
 
   return (
-    <article className={`project-card ${p.layoutSpan || ''}`}>
-      <Link to={`/work/${p.slug}`} className="project-media-wrap" aria-label={`View ${p.title} case study`}>
+    <article className={`project-card ${isGraphic ? 'project-card-graphic' : ''} ${p.layoutSpan || ''}`}>
+      <Link
+        to={`/work/${p.slug}`}
+        className={`project-media-wrap ${isGraphic ? 'project-media-wrap-graphic' : ''}`}
+        aria-label={`View ${p.title} project details`}
+      >
         <Img
           src={p.cover}
           alt={p.coverAlt || `${p.title} preview`}
@@ -1033,13 +1076,16 @@ function BehanceIcon({ size = 16, className = '' }) {
 // -------------------------------------------------------------
 export function CategoryProjectModal({ categoryId, onClose }) {
   const [activeCat, setActiveCat] = useState(categoryId || 'software');
+  const { projects: liveProjects, categories: liveCategories } = useProjects();
+  const activeCategories = (liveCategories && Object.keys(liveCategories).length > 0) ? liveCategories : categories;
+  const activeProjects = (liveProjects && liveProjects.length > 0) ? liveProjects : projects;
 
   useEffect(() => {
     if (categoryId) setActiveCat(categoryId);
   }, [categoryId]);
 
-  const catInfo = categories[activeCat] || categories['software'];
-  const catProjects = projects.filter((p) => p.category === activeCat);
+  const catInfo = activeCategories[activeCat] || activeCategories['software'] || categories['software'];
+  const catProjects = activeProjects.filter((p) => p.category === activeCat);
 
   useEffect(() => {
     const handleKey = (e) => {
@@ -1075,8 +1121,8 @@ export function CategoryProjectModal({ categoryId, onClose }) {
           </button>
 
           <div className="cat-modal-category-pills" role="tablist" aria-label="Switch project collection">
-            {Object.values(categories).map((c) => {
-              const count = projects.filter((p) => p.category === c.id).length;
+            {Object.values(activeCategories).map((c) => {
+              const count = activeProjects.filter((p) => p.category === c.id).length;
               const isActive = c.id === activeCat;
               return (
                 <button
@@ -1116,22 +1162,30 @@ export function CategoryProjectModal({ categoryId, onClose }) {
         {/* Modal Body: Category-specific project displays */}
         <div className="cat-modal-body">
           {activeCat === 'graphic' ? (
-            /* Canva Designs: 8 image-focused cards with derived readable titles */
+            /* Canva Designs: 8 image-focused cards with natural aspect ratios & full visibility */
             <div className="cat-modal-designs-grid">
               {catProjects.map((p, idx) => (
                 <article key={p.slug || idx} className="cat-design-card">
-                  <div className="cat-design-media" style={{ aspectRatio: p.aspectRatio || '1/1' }}>
-                    <img
-                      src={p.cover}
-                      alt={p.title}
-                      className="cat-design-img"
-                      loading="lazy"
-                      decoding="async"
-                    />
-                  </div>
-                  <div className="cat-design-footer">
-                    <h3 className="cat-design-title">{p.title}</h3>
-                  </div>
+                  <Link
+                    to={`/work/${p.slug}`}
+                    className="cat-design-card-link"
+                    onClick={onClose}
+                    aria-label={`View ${p.title} project details`}
+                  >
+                    <div className="cat-design-media">
+                      <img
+                        src={p.cover}
+                        alt={p.title}
+                        className="cat-design-img"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    </div>
+                    <div className="cat-design-footer">
+                      <h3 className="cat-design-title">{p.title}</h3>
+                      <span className="cat-design-view-hint" aria-hidden="true">View ↗</span>
+                    </div>
+                  </Link>
                 </article>
               ))}
             </div>
@@ -1253,9 +1307,9 @@ export function CategoryProjectModal({ categoryId, onClose }) {
                         to={`/work/${p.slug}`}
                         className="btn solid btn-sm"
                         onClick={onClose}
-                        aria-label={`Read ${p.title} full case study`}
+                        aria-label={`View ${p.title} project details`}
                       >
-                        Case Study ↗
+                        View Project ↗
                       </Link>
                     </div>
                   </div>
@@ -1297,6 +1351,8 @@ export function CategoryProjectModal({ categoryId, onClose }) {
 // -------------------------------------------------------------
 export function FourCategoryCards({ onSelectCategory }) {
   const [activeId, setActiveId] = useState('software');
+  const { projects: liveProjects } = useProjects();
+  const activeProjects = (liveProjects && liveProjects.length > 0) ? liveProjects : projects;
 
   const fourCategories = [
     {
@@ -1305,7 +1361,7 @@ export function FourCategoryCards({ onSelectCategory }) {
       desc: 'Full-stack web applications and software systems built with React, Node.js, Express, and clean architecture.',
       previewLabel: 'Personal Portfolio Website',
       thumbnail: '/images/projects/website/arpa-portfolio.png',
-      count: projects.filter((p) => p.category === 'software').length,
+      count: activeProjects.filter((p) => p.category === 'software').length,
     },
     {
       id: 'uiux',
@@ -1313,7 +1369,7 @@ export function FourCategoryCards({ onSelectCategory }) {
       desc: 'Research-led digital product concepts, interactive Figma prototypes, user personas, and design systems.',
       previewLabel: 'OneCitizen, MediLink & ResumeXi',
       thumbnail: '/images/projects/uiux/onecitizen.png',
-      count: projects.filter((p) => p.category === 'uiux').length,
+      count: activeProjects.filter((p) => p.category === 'uiux').length,
     },
     {
       id: 'graphic',
@@ -1321,7 +1377,7 @@ export function FourCategoryCards({ onSelectCategory }) {
       desc: 'Dedicated visual designs, promotional event posters, and digital campaign collateral for campus initiatives.',
       previewLabel: 'EWUECC & Banglay IELTS Posters',
       thumbnail: '/images/projects/designs/Feb21_ECC.png',
-      count: projects.filter((p) => p.category === 'graphic').length,
+      count: activeProjects.filter((p) => p.category === 'graphic').length,
     },
     {
       id: 'sqa',
@@ -1329,7 +1385,7 @@ export function FourCategoryCards({ onSelectCategory }) {
       desc: 'Automated testing suites, API testing via Postman/Newman, Selenium browser regression, and defect reports.',
       previewLabel: 'OSTAD Automation & CS423 Query',
       thumbnail: '',
-      count: projects.filter((p) => p.category === 'sqa').length,
+      count: activeProjects.filter((p) => p.category === 'sqa').length,
     },
   ];
 
@@ -1465,12 +1521,38 @@ export function FourCategoryCards({ onSelectCategory }) {
 // Single source of truth: src/data/skills.js (no serial numbers, no invented skills).
 // -------------------------------------------------------------
 export function SkillsCapsules() {
-  const [activeCategory, setActiveCategory] = useState(skillCategories[0]?.id || 'uiux');
+  const { skills: liveSkills, hasLoaded, error } = useSkills();
+  const categories = hasLoaded
+    ? (Array.isArray(liveSkills) && liveSkills.length > 0 ? liveSkills : [])
+    : (error ? skillCategories : (Array.isArray(liveSkills) && liveSkills.length > 0 ? liveSkills : skillCategories));
+
+  const [activeCategory, setActiveCategory] = useState(categories[0]?.id || 'uiux');
   const [isAllExpanded, setIsAllExpanded] = useState(false);
 
+  // Keep activeCategory valid when categories change
+  useEffect(() => {
+    if (categories.length > 0 && !categories.some((c) => c.id === activeCategory)) {
+      setActiveCategory(categories[0].id);
+    }
+  }, [categories, activeCategory]);
+
+  if (categories.length === 0) {
+    return (
+      <div
+        className="skills-glass-stack-container"
+        role="region"
+        aria-label="Layered Glass Stack of Skills"
+      >
+        <div className="empty-catalog-state" style={{ padding: '3rem 1rem', textAlign: 'center', color: 'var(--text-secondary, #94a3b8)' }}>
+          <p>No skills recorded yet.</p>
+        </div>
+      </div>
+    );
+  }
+
   const activeGroup =
-    skillCategories.find((c) => c.id === activeCategory) || skillCategories[0];
-  const backgroundCategories = skillCategories.filter((c) => c.id !== activeCategory);
+    categories.find((c) => c.id === activeCategory) || categories[0] || { id: 'default', title: 'Skills', skills: [] };
+  const backgroundCategories = categories.filter((c) => c.id !== activeCategory);
 
   return (
     <div
@@ -1481,7 +1563,7 @@ export function SkillsCapsules() {
       {/* Stack Navigation & View Mode Controls */}
       <div className="skills-glass-toolbar">
         <div className="skills-layer-tabs" role="tablist" aria-label="Skill Category Layers">
-          {skillCategories.map((grp) => {
+          {categories.map((grp) => {
             const isActive = !isAllExpanded && activeCategory === grp.id;
             return (
               <button
@@ -1498,7 +1580,7 @@ export function SkillsCapsules() {
               >
                 <span className="skills-tab-indicator" aria-hidden="true" />
                 <span className="skills-tab-label">{grp.title}</span>
-                <span className="skills-tab-pill">{grp.skills.length}</span>
+                <span className="skills-tab-pill">{(grp.skills || []).length}</span>
               </button>
             );
           })}
@@ -1513,14 +1595,14 @@ export function SkillsCapsules() {
           <span className="skills-toggle-icon" aria-hidden="true">
             {isAllExpanded ? '⊞' : '☰'}
           </span>
-          <span>{isAllExpanded ? 'Layered Stack' : 'View All (4)'}</span>
+          <span>{isAllExpanded ? 'Layered Stack' : `View All (${categories.length})`}</span>
         </button>
       </div>
 
       {/* Presentation Mode: All Expanded vs Layered Glass Stack */}
       {isAllExpanded ? (
         <div className="skills-expanded-deck">
-          {skillCategories.map((grp) => (
+          {categories.map((grp) => (
             <article
               key={grp.id}
               id={`skills-layer-${grp.id}`}
@@ -1530,7 +1612,7 @@ export function SkillsCapsules() {
                 <div className="skills-glass-header-text">
                   <div className="skills-glass-title-row">
                     <h3 className="skills-glass-title">{grp.title}</h3>
-                    <span className="skills-glass-badge">{grp.skills.length} Skills</span>
+                    <span className="skills-glass-badge">{(grp.skills || []).length} Skills</span>
                   </div>
                   {grp.blurb && <p className="skills-glass-blurb">{grp.blurb}</p>}
                 </div>
@@ -1541,7 +1623,7 @@ export function SkillsCapsules() {
                 role="list"
                 aria-label={`${grp.title} competencies`}
               >
-                {grp.skills.map((skill, sIdx) => {
+                {(grp.skills || []).map((skill, sIdx) => {
                   const skillName = typeof skill === 'string' ? skill : skill.name;
                   return (
                     <span key={sIdx} className="skills-glass-capsule" role="listitem">
@@ -1576,7 +1658,7 @@ export function SkillsCapsules() {
                 >
                   <div className="skills-bg-layer-header">
                     <span className="skills-bg-layer-title">{grp.title}</span>
-                    <span className="skills-bg-layer-badge">{grp.skills.length} skills</span>
+                    <span className="skills-bg-layer-badge">{(grp.skills || []).length} skills</span>
                     <span className="skills-bg-layer-action">Bring to front ↗</span>
                   </div>
                 </div>
@@ -1596,7 +1678,7 @@ export function SkillsCapsules() {
                 <div className="skills-glass-title-row">
                   <h3 className="skills-glass-title">{activeGroup.title}</h3>
                   <span className="skills-glass-badge">
-                    {activeGroup.skills.length} Verified Skills
+                    {(activeGroup.skills || []).length} Verified Skills
                   </span>
                 </div>
                 {activeGroup.blurb && (
@@ -1610,7 +1692,7 @@ export function SkillsCapsules() {
               role="list"
               aria-label={`${activeGroup.title} competencies`}
             >
-              {activeGroup.skills.map((skill, sIdx) => {
+              {(activeGroup.skills || []).map((skill, sIdx) => {
                 const skillName = typeof skill === 'string' ? skill : skill.name;
                 return (
                   <span key={sIdx} className="skills-glass-capsule" role="listitem">
@@ -1622,7 +1704,7 @@ export function SkillsCapsules() {
 
             <footer className="skills-card-footer">
               <span className="skills-card-footer-indicator">
-                Layer {skillCategories.findIndex((c) => c.id === activeCategory) + 1} of {skillCategories.length} &bull; Click any background layer or tab to switch
+                Layer {categories.findIndex((c) => c.id === activeCategory) + 1} of {categories.length} &bull; Click any background layer or tab to switch
               </span>
             </footer>
           </article>
@@ -1643,23 +1725,82 @@ export function getReviewImageSrc(src) {
   return src.startsWith('/') ? src : '/' + src;
 }
 
-export function ReviewsSection({ items = [] }) {
-  const [isPaused, setIsPaused] = useState(false);
-  const total = items.length;
+// Curated editorial headlines, verified roles, and fluid art themes matching the reference layout
+const REVIEW_METADATA = {
+  'rafid-hasan': {
+    headline: 'One of the most driven, forward-thinking people I know.',
+    role: 'VP of IT · Ostad Cohort Lead',
+    theme: 'crimson',
+  },
+  'sumaya-rahman': {
+    headline: 'Dedicated and enthusiastic, with an inspiring passion to grow.',
+    role: 'UI/UX Partner & Project Collaborator',
+    theme: 'gold',
+  },
+  'rawan': {
+    headline: 'Outstanding, inspiring and deeply hardworking teammate.',
+    role: 'Peer Collaborator · Full-Stack Projects',
+    theme: 'cyan',
+  },
+  'mashiur-rahaman': {
+    headline: 'Brings creativity, kindness and passion to every project.',
+    role: 'Mentor & Senior Engineer',
+    theme: 'violet',
+  },
+};
 
-  // Single-card infinite sliding carousel state
-  // Virtual index runs from 1 to total for original items, 0 for clone-last, total + 1 for clone-first
-  const [virtualIndex, setVirtualIndex] = useState(1);
-  const [enableTransition, setEnableTransition] = useState(true);
-  const [isTransitioning, setIsTransitioning] = useState(false);
+const ART_THEMES_CYCLE = ['crimson', 'gold', 'cyan', 'violet', 'emerald'];
+
+function getReviewMeta(item) {
+  if (!item) return {};
+  const id = item.id || '';
+  const author = (item.author || item.name || item.reviewer_name || item.reviewerName || '').toLowerCase().trim();
+
+  if (REVIEW_METADATA[id]) return REVIEW_METADATA[id];
+  if (author.includes('rafid')) return REVIEW_METADATA['rafid-hasan'];
+  if (author.includes('sumaya')) return REVIEW_METADATA['sumaya-rahman'];
+  if (author.includes('rawan')) return REVIEW_METADATA['rawan'];
+  if (author.includes('mashiur')) return REVIEW_METADATA['mashiur-rahaman'];
+
+  return {};
+}
+
+function extractHeadline(text) {
+  if (!text) return 'Inspiring Collaboration';
+  const sentences = text.match(/[^.!?]+[.!?]+/g);
+  if (sentences && sentences[0] && sentences[0].trim().length <= 65) {
+    return sentences[0].trim().replace(/[.!?]+$/, '');
+  }
+  const words = text.split(/\s+/);
+  if (words.length <= 8) return text;
+  return words.slice(0, 8).join(' ').replace(/[,;:.!?]+$/, '') + '…';
+}
+
+export function ReviewsSection({ items }) {
+  // If items is explicitly an empty array (meaning live database returned 0 published reviews), do not restore fallbackReviews
+  if (Array.isArray(items) && items.length === 0) {
+    return (
+      <div className="reviews-empty-state" style={{ textAlign: 'center', padding: '3.5rem 1rem', color: 'var(--text-muted, #94a3b8)' }}>
+        <p style={{ fontSize: '1rem', margin: 0 }}>No endorsements currently published.</p>
+      </div>
+    );
+  }
+
+  // Always ensure we have safe items (prevents disappearing reviews on any race condition or uninitialized state)
+  const safeItems = Array.isArray(items) && items.length > 0 ? items : fallbackReviews;
+  const N = safeItems.length;
+
+  const [isPaused, setIsPaused] = useState(false);
+  // Virtual index starts at 100 * N so user can navigate backward and forward freely
+  const [activeVirtualIndex, setActiveVirtualIndex] = useState(() => 100 * Math.max(1, N));
   const [touchStartX, setTouchStartX] = useState(null);
 
-  // Active index for dots and current indicator: 0 to total - 1
-  const activeIndex = total > 0 ? (virtualIndex - 1 + total) % total : 0;
+  // Active real index for dots and current indicator
+  const activeRealIndex = N > 0 ? ((activeVirtualIndex % N) + N) % N : 0;
 
-  // Auto-rotation effect: 6000ms gentle interval, paused on hover/touch/focus
+  // Auto-rotation effect: 6.5s interval, paused on hover/touch/focus or reduced-motion
   useEffect(() => {
-    if (isPaused || total <= 1) return;
+    if (isPaused || N <= 1) return;
 
     if (typeof window !== 'undefined' && window.matchMedia) {
       const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -1667,64 +1808,49 @@ export function ReviewsSection({ items = [] }) {
     }
 
     const interval = setInterval(() => {
-      setEnableTransition(true);
-      setVirtualIndex((prev) => prev + 1);
-    }, 6000);
+      setActiveVirtualIndex((prev) => prev + 1);
+    }, 6500);
 
     return () => clearInterval(interval);
-  }, [isPaused, total]);
+  }, [isPaused, N]);
 
-  // Handle seamless infinite looping at boundaries
-  const handleTransitionEnd = (e) => {
-    if (e.target !== e.currentTarget) return;
+  const stageRef = useRef(null);
+  const [stageMinHeight, setStageMinHeight] = useState(420);
 
-    setIsTransitioning(false);
-    if (virtualIndex === total + 1) {
-      // Reached the trailing clone of the first item, snap seamlessly to real first item (index 1)
-      setEnableTransition(false);
-      setVirtualIndex(1);
-    } else if (virtualIndex === 0) {
-      // Reached the leading clone of the last item, snap seamlessly to real last item (index total)
-      setEnableTransition(false);
-      setVirtualIndex(total);
-    }
-  };
-
-  // Re-enable CSS transition after seamless snap
+  // Dynamically measure cards so that parent stage expands naturally to the full review content
   useEffect(() => {
-    if (!enableTransition) {
-      const id = requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          setEnableTransition(true);
-        });
+    const updateStageHeight = () => {
+      if (!stageRef.current) return;
+      const cards = stageRef.current.querySelectorAll('.review-coverflow-card');
+      let maxH = 340;
+      cards.forEach((card) => {
+        const contentEl = card.querySelector('.card-art-content');
+        const h = contentEl ? contentEl.scrollHeight : card.scrollHeight;
+        if (h > maxH) maxH = h;
       });
-      return () => cancelAnimationFrame(id);
-    }
-  }, [enableTransition]);
+      setStageMinHeight(Math.max(420, maxH + 36));
+    };
 
-  // Navigation handlers
-  const handlePrev = () => {
-    if (isTransitioning) return;
-    setIsTransitioning(true);
-    setEnableTransition(true);
-    setVirtualIndex((prev) => prev - 1);
+    updateStageHeight();
+    const id = requestAnimationFrame(updateStageHeight);
+    window.addEventListener('resize', updateStageHeight);
+    return () => {
+      cancelAnimationFrame(id);
+      window.removeEventListener('resize', updateStageHeight);
+    };
+  }, [safeItems, activeVirtualIndex]);
+
+  // Handlers
+  const handlePrev = () => setActiveVirtualIndex((prev) => prev - 1);
+  const handleNext = () => setActiveVirtualIndex((prev) => prev + 1);
+
+  const handleDotClick = (targetRealIdx) => {
+    let diff = targetRealIdx - activeRealIndex;
+    if (diff > N / 2) diff -= N;
+    if (diff < -N / 2) diff += N;
+    setActiveVirtualIndex((prev) => prev + diff);
   };
 
-  const handleNext = () => {
-    if (isTransitioning) return;
-    setIsTransitioning(true);
-    setEnableTransition(true);
-    setVirtualIndex((prev) => prev + 1);
-  };
-
-  const goToSlide = (targetIndex) => {
-    if (isTransitioning || targetIndex === activeIndex) return;
-    setIsTransitioning(true);
-    setEnableTransition(true);
-    setVirtualIndex(targetIndex + 1);
-  };
-
-  // Touch handlers for mobile swipe
   const handleTouchStart = (e) => {
     setIsPaused(true);
     setTouchStartX(e.touches[0].clientX);
@@ -1742,7 +1868,6 @@ export function ReviewsSection({ items = [] }) {
     setTouchStartX(null);
   };
 
-  // Keyboard navigation
   const handleKeyDown = (e) => {
     if (e.key === 'ArrowLeft') {
       e.preventDefault();
@@ -1753,100 +1878,15 @@ export function ReviewsSection({ items = [] }) {
     }
   };
 
-  if (!items || total === 0) {
-    return (
-      <div className="reviews-placeholder-box">
-        <div className="reviews-placeholder-icon" aria-hidden="true">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-          </svg>
-        </div>
-        <h3 className="reviews-placeholder-title">Endorsements &amp; Recommendations</h3>
-        <p className="reviews-placeholder-text">
-          Currently gathering peer reviews and mentor testimonials from academic coursework, Ostad cohorts, and university leadership roles. Space reserved for verified feedback.
-        </p>
-        <span className="reviews-placeholder-status">Authentic Feedback Only · No Fabricated Endorsements</span>
-      </div>
-    );
-  }
-
-  // Construct extended slides array for seamless infinite looping:
-  // [lastItem (clone), ...items, firstItem (clone)]
-  const slides = total > 1
-    ? [
-        { ...items[total - 1], _isClone: true, _key: 'clone-last' },
-        ...items.map((item, idx) => ({ ...item, _isClone: false, _key: `real-${idx}` })),
-        { ...items[0], _isClone: true, _key: 'clone-first' },
-      ]
-    : items.map((item, idx) => ({ ...item, _isClone: false, _key: `single-${idx}` }));
-
-  const renderCard = (item, slideIndex) => {
-    const isClone = item._isClone;
-    const reviewerName = item.author || item.name;
-    const imgSrc = getReviewImageSrc(item.image);
-    const isCurrent = !isClone && activeIndex === (slideIndex - 1);
-
-    return (
-      <div
-        key={`${item._key}-${slideIndex}`}
-        className="reviews-carousel-slide"
-        role="group"
-        aria-roledescription="slide"
-        aria-label={isClone ? undefined : `${reviewerName} testimonial (${activeIndex + 1} of ${total})`}
-        aria-hidden={isClone || !isCurrent ? 'true' : 'false'}
-      >
-        <article className="review-glass-card">
-          <div className="review-quote-mark" aria-hidden="true">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
-            </svg>
-          </div>
-
-          <blockquote className="review-quote-text">
-            {item.quote || item.testimonial}
-          </blockquote>
-
-          <div className="review-author-row">
-            <div className="review-author-profile">
-              {item.image && (
-                <div className="review-avatar-frame">
-                  <img
-                    src={imgSrc}
-                    data-src={item.image}
-                    alt={isClone ? '' : reviewerName}
-                    className="review-avatar-img"
-                    loading="lazy"
-                    decoding="async"
-                    onError={(e) => {
-                      if (item.image && e.currentTarget.getAttribute('src') !== item.image) {
-                        e.currentTarget.src = item.image;
-                      }
-                    }}
-                  />
-                </div>
-              )}
-              <div className="review-author-info">
-                <span className="review-author-name">{reviewerName}</span>
-                {item.role && (
-                  <span className="review-author-role">
-                    {item.role}{item.organization ? ` · ${item.organization}` : ''}
-                  </span>
-                )}
-              </div>
-            </div>
-            {item.date && <span className="review-date">{item.date}</span>}
-          </div>
-        </article>
-      </div>
-    );
-  };
+  // Visible slots range: -3 to +3 (7 virtual slots ensuring seamless 3D entrance and exit)
+  const slotOffsets = [-3, -2, -1, 0, 1, 2, 3];
 
   return (
     <div
-      className={`reviews-carousel-outer reviews-marquee-wrapper ${isPaused ? 'is-paused' : ''}`}
+      className={`reviews-coverflow-wrapper ${isPaused ? 'is-paused' : ''}`}
       role="region"
       aria-roledescription="carousel"
-      aria-label="Peer Endorsements and Testimonials"
+      aria-label="Peer Endorsements and Testimonials Coverflow"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
       onFocus={() => setIsPaused(true)}
@@ -1856,22 +1896,105 @@ export function ReviewsSection({ items = [] }) {
       onKeyDown={handleKeyDown}
       tabIndex={0}
     >
-      <div className="reviews-carousel-viewport reviews-marquee-viewport">
-        <div
-          className="reviews-carousel-track reviews-marquee-track"
-          style={{
-            transform: `translateX(-${virtualIndex * 100}%)`,
-            transition: enableTransition
-              ? 'transform 600ms cubic-bezier(0.16, 1, 0.3, 1)'
-              : 'none',
-          }}
-          onTransitionEnd={handleTransitionEnd}
-        >
-          {slides.map((item, idx) => renderCard(item, idx))}
-        </div>
+      <div className="reviews-coverflow-stage" ref={stageRef} style={{ minHeight: `${stageMinHeight}px` }}>
+        {slotOffsets.map((d) => {
+          const virtualIdx = activeVirtualIndex + d;
+          const realIdx = ((virtualIdx % N) + N) % N;
+          const item = safeItems[realIdx];
+          const meta = getReviewMeta(item);
+          const rawQuote = item.quote || item.testimonial || '';
+          const quoteText = rawQuote.replace(/^["'“\s]+|["'”\s]+$/g, '').trim();
+          const headline = item.headline || meta.headline || extractHeadline(quoteText);
+          const authorRole = item.role
+            ? (item.organization && !item.role.toLowerCase().includes(item.organization.toLowerCase()) ? `${item.role} · ${item.organization}` : item.role)
+            : (meta.role || (item.organization ? `${item.organization}` : 'Peer Collaborator'));
+          const artTheme = item.artTheme || meta.theme || ART_THEMES_CYCLE[realIdx % ART_THEMES_CYCLE.length];
+          const authorName = item.author || item.name || item.reviewer_name || 'Anonymous';
+          const imgSrc = getReviewImageSrc(item.image);
+          const badgeNum = String(realIdx + 1).padStart(2, '0');
+          const isCenter = d === 0;
+
+          let slotClass = '';
+          if (d === 0) slotClass = 'slot-center';
+          else if (d === -1) slotClass = 'slot-left-1';
+          else if (d === 1) slotClass = 'slot-right-1';
+          else if (d === -2) slotClass = 'slot-left-2';
+          else if (d === 2) slotClass = 'slot-right-2';
+          else if (d <= -3) slotClass = 'slot-hidden-left';
+          else if (d >= 3) slotClass = 'slot-hidden-right';
+
+          return (
+            <article
+              key={virtualIdx}
+              className={`review-coverflow-card ${slotClass}`}
+              data-art-theme={artTheme}
+              onClick={() => {
+                if (d !== 0) {
+                  setActiveVirtualIndex((prev) => prev + d);
+                }
+              }}
+              role="group"
+              aria-roledescription="slide"
+              aria-label={`${authorName} testimonial (${realIdx + 1} of ${N})`}
+              aria-hidden={!isCenter}
+            >
+              {/* Soft Ambient Glass Tint */}
+              <div className="card-glass-ambient" aria-hidden="true" />
+
+              {/* Soft Highlight Sheen */}
+              <div className="card-glass-sheen" aria-hidden="true" />
+
+              {/* Card Foreground Content */}
+              <div className="card-art-content">
+                <div className="card-top-bar">
+                  <span className="card-peer-badge">PEER ENDORSEMENT · {badgeNum}</span>
+                  <div className="card-quote-glyph" aria-hidden="true">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
+                    </svg>
+                  </div>
+                </div>
+
+                <div className="card-bottom-block">
+                  <h3 className="card-serif-headline">
+                    {headline}
+                  </h3>
+
+                  <blockquote className="card-quote-body">
+                    “{quoteText}”
+                  </blockquote>
+
+                  <div className="card-author-row">
+                    {imgSrc && (
+                      <div className="card-author-avatar-wrap">
+                        <img
+                          src={imgSrc}
+                          alt={authorName}
+                          className="card-author-avatar"
+                          loading="lazy"
+                          decoding="async"
+                          onError={(e) => {
+                            if (item.image && e.currentTarget.getAttribute('src') !== item.image) {
+                              e.currentTarget.src = item.image;
+                            }
+                          }}
+                        />
+                      </div>
+                    )}
+                    <div className="card-author-meta">
+                      <div className="card-author-name">{authorName}</div>
+                      <div className="card-author-role">{authorRole}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </article>
+          );
+        })}
       </div>
 
-      {total > 1 && (
+      {/* Navigation Controls: Previous / Next & Pagination Dots */}
+      {N > 1 && (
         <div className="reviews-carousel-controls" aria-label="Testimonial controls">
           <button
             type="button"
@@ -1894,19 +2017,19 @@ export function ReviewsSection({ items = [] }) {
             </svg>
           </button>
 
-          <div className="reviews-dots" role="tablist" aria-label="Testimonial slides">
-            {items.map((item, idx) => {
-              const name = item.author || item.name;
-              const isActive = activeIndex === idx;
+          <div className="reviews-dots" role="tablist" aria-label="Testimonial pagination">
+            {safeItems.map((item, idx) => {
+              const name = item.author || item.name || item.reviewer_name;
+              const isActive = activeRealIndex === idx;
               return (
                 <button
                   key={idx}
                   type="button"
                   role="tab"
                   aria-selected={isActive}
-                  aria-label={`Go to testimonial ${idx + 1} of ${total}: ${name}`}
+                  aria-label={`Go to testimonial ${idx + 1} of ${N}: ${name}`}
                   className={`reviews-dot ${isActive ? 'is-active' : ''}`}
-                  onClick={() => goToSlide(idx)}
+                  onClick={() => handleDotClick(idx)}
                 />
               );
             })}
@@ -2022,6 +2145,8 @@ export function FAQSection({ items = faqData }) {
 export function AdditionalGitHubRepos({ className = '' }) {
   const [repos, setRepos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { projects: liveProjects } = useProjects();
+  const activeProjects = (liveProjects && liveProjects.length > 0) ? liveProjects : projects;
 
   useEffect(() => {
     let isMounted = true;
@@ -2029,7 +2154,7 @@ export function AdditionalGitHubRepos({ className = '' }) {
     async function loadRepos() {
       try {
         setLoading(true);
-        const result = await fetchAdditionalRepos(projects);
+        const result = await fetchAdditionalRepos(activeProjects);
         if (isMounted) {
           setRepos(result.repos || []);
           setLoading(false);
@@ -2046,7 +2171,7 @@ export function AdditionalGitHubRepos({ className = '' }) {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [activeProjects]);
 
   // Return nothing when loading or when no additional repositories exist
   if (loading || repos.length === 0) {
@@ -2131,6 +2256,252 @@ export function AdditionalGitHubRepos({ className = '' }) {
 }
 
 // -------------------------------------------------------------
+// FOOTER SHOWCASE TRIPTYCH DECK (QUICK ACCESS NAVIGATION)
+// Interactive 3-card fanned Quick Access section placed immediately
+// above the footer, featuring About, Explore, and Connect sections
+// with smooth scrolling to homepage anchors and staggered reveal.
+// -------------------------------------------------------------
+export function FooterShowcaseDeck({ onNavigate, revealKey = 0 }) {
+  const handleClick = (e, target) => {
+    if (onNavigate) {
+      onNavigate(e, target);
+    }
+  };
+
+  return (
+    <section id="quick-access" className="footer-showcase-deck" aria-label="Quick Access Navigation">
+      <div className="site-wrapper deck-container">
+        <div className="deck-eyebrow-wrap" aria-hidden="true">
+          <span className="deck-eyebrow">Quick Access · Explore Portfolio</span>
+        </div>
+
+        <div className="deck-cards-row" role="region" aria-label="Quick Access Navigation Cards">
+          {/* Card 2: Explore (Left) */}
+          <div
+            key={`card-explore-${revealKey}`}
+            className={`deck-card deck-card-slides deck-card-explore ${revealKey > 0 ? 'is-revealing' : ''}`}
+            style={{
+              '--deck-stagger-delay': '0ms',
+              '--deck-card-rot': 'rotate(-3deg)',
+              '--deck-card-y': '4px',
+            }}
+          >
+            <div className="deck-preview-well">
+              <div className="deck-sheet-stack">
+                <div className="deck-sheet deck-sheet-back-2 dark-stack" aria-hidden="true" />
+                <div className="deck-sheet deck-sheet-back-1 dark-stack" aria-hidden="true" />
+                <div className="deck-sheet deck-sheet-front deck-sheet-docs-front">
+                  <span className="deck-docs-title">Skills &amp; Projects</span>
+                  <div className="deck-docs-lines" aria-hidden="true">
+                    <div className="deck-line-bar bar-wide" />
+                    <div className="deck-line-bar bar-medium" />
+                    <div className="deck-line-row">
+                      <span className="deck-blue-bullet" />
+                      <div className="deck-line-bar bar-short" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="deck-card-body">
+              <div className="deck-category-header">
+                <span className="deck-icon-badge badge-blue" aria-hidden="true">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
+                  </svg>
+                </span>
+                <h3 className="deck-category-title">Explore</h3>
+              </div>
+              <ul className="deck-items-list">
+                <li className="deck-list-item">
+                  <a
+                    href="#skills"
+                    onClick={(e) => handleClick(e, '#skills')}
+                    className="deck-item-link"
+                    aria-label="Scroll to Skills section"
+                  >
+                    <span className="deck-plus plus-blue" aria-hidden="true">+</span>
+                    <span>Skills</span>
+                    <span className="deck-link-arrow" aria-hidden="true">↗</span>
+                  </a>
+                </li>
+                <li className="deck-list-item">
+                  <a
+                    href="#projects"
+                    onClick={(e) => handleClick(e, '#projects')}
+                    className="deck-item-link"
+                    aria-label="Scroll to Projects section"
+                  >
+                    <span className="deck-plus plus-blue" aria-hidden="true">+</span>
+                    <span>Projects</span>
+                    <span className="deck-link-arrow" aria-hidden="true">↗</span>
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Card 1: About (Center) */}
+          <div
+            key={`card-about-${revealKey}`}
+            className={`deck-card deck-card-docs deck-card-about ${revealKey > 0 ? 'is-revealing' : ''}`}
+            style={{
+              '--deck-stagger-delay': '120ms',
+              '--deck-card-rot': 'rotate(0deg)',
+              '--deck-card-y': '-8px',
+            }}
+          >
+            <div className="deck-preview-well">
+              <div className="deck-sheet-stack">
+                <div className="deck-sheet deck-sheet-back-2" aria-hidden="true" />
+                <div className="deck-sheet deck-sheet-back-1" aria-hidden="true" />
+                <div className="deck-sheet deck-sheet-front deck-sheet-slides-front">
+                  <div className="deck-slides-header">
+                    <span className="deck-slides-title">About Sumaiya</span>
+                    <div className="deck-slides-divider" />
+                  </div>
+                  <div className="deck-slides-chart" aria-hidden="true">
+                    <div className="deck-chart-bar bar-purple" style={{ height: '62%' }} title="Education" />
+                    <div className="deck-chart-bar bar-green" style={{ height: '78%' }} title="Experience" />
+                    <div className="deck-chart-bar bar-terracotta" style={{ height: '94%' }} title="Acknowledgements" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="deck-card-body">
+              <div className="deck-category-header">
+                <span className="deck-icon-badge badge-amber" aria-hidden="true">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
+                </span>
+                <h3 className="deck-category-title">About</h3>
+              </div>
+              <ul className="deck-items-list">
+                <li className="deck-list-item">
+                  <a
+                    href="#education"
+                    onClick={(e) => handleClick(e, '#education')}
+                    className="deck-item-link"
+                    aria-label="Scroll to Education section"
+                  >
+                    <span className="deck-plus plus-amber" aria-hidden="true">+</span>
+                    <span>Education</span>
+                    <span className="deck-link-arrow" aria-hidden="true">↗</span>
+                  </a>
+                </li>
+                <li className="deck-list-item">
+                  <a
+                    href="#experience"
+                    onClick={(e) => handleClick(e, '#experience')}
+                    className="deck-item-link"
+                    aria-label="Scroll to Experience section"
+                  >
+                    <span className="deck-plus plus-amber" aria-hidden="true">+</span>
+                    <span>Experience</span>
+                    <span className="deck-link-arrow" aria-hidden="true">↗</span>
+                  </a>
+                </li>
+                <li className="deck-list-item">
+                  <a
+                    href="#acknowledgements"
+                    onClick={(e) => handleClick(e, '#acknowledgements')}
+                    className="deck-item-link"
+                    aria-label="Scroll to Acknowledgements section"
+                  >
+                    <span className="deck-plus plus-amber" aria-hidden="true">+</span>
+                    <span>Acknowledgements</span>
+                    <span className="deck-link-arrow" aria-hidden="true">↗</span>
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Card 3: Connect */}
+          <div
+            key={`card-connect-${revealKey}`}
+            className={`deck-card deck-card-design deck-card-connect ${revealKey > 0 ? 'is-revealing' : ''}`}
+            style={{
+              '--deck-stagger-delay': '240ms',
+              '--deck-card-rot': 'rotate(3deg)',
+              '--deck-card-y': '4px',
+            }}
+          >
+            <div className="deck-preview-well">
+              <div className="deck-sheet-stack">
+                <div className="deck-sheet deck-sheet-front deck-sheet-design-front">
+                  <div className="deck-browser-chrome" aria-hidden="true">
+                    <div className="deck-chrome-pill pill-red" />
+                    <div className="deck-chrome-pill pill-gray" />
+                    <div className="deck-chrome-pill pill-gray" />
+                    <div className="deck-chrome-pill pill-black" />
+                  </div>
+                  <div className="deck-browser-content">
+                    <div className="deck-design-text-col">
+                      <span className="deck-design-title">
+                        Reviews &amp;<br />Questions
+                      </span>
+                      <div className="deck-design-divider" />
+                    </div>
+                    <div className="deck-design-artwork" aria-hidden="true">
+                      <div className="deck-art-sun" />
+                      <div className="deck-art-dune dune-back" />
+                      <div className="deck-art-dune dune-front" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="deck-card-body">
+              <div className="deck-category-header">
+                <span className="deck-icon-badge badge-purple" aria-hidden="true">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+                  </svg>
+                </span>
+                <h3 className="deck-category-title">Connect</h3>
+              </div>
+              <ul className="deck-items-list">
+                <li className="deck-list-item">
+                  <a
+                    href="#reviews"
+                    onClick={(e) => handleClick(e, '#reviews')}
+                    className="deck-item-link"
+                    aria-label="Scroll to Reviews section"
+                  >
+                    <span className="deck-plus plus-purple" aria-hidden="true">+</span>
+                    <span>Reviews</span>
+                    <span className="deck-link-arrow" aria-hidden="true">↗</span>
+                  </a>
+                </li>
+                <li className="deck-list-item">
+                  <a
+                    href="#faq"
+                    onClick={(e) => handleClick(e, '#faq')}
+                    className="deck-item-link"
+                    aria-label="Scroll to Questions and FAQ section"
+                  >
+                    <span className="deck-plus plus-purple" aria-hidden="true">+</span>
+                    <span>Questions (FAQ)</span>
+                    <span className="deck-link-arrow" aria-hidden="true">↗</span>
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// -------------------------------------------------------------
 // MAIN LAYOUT
 // Minimal glassmorphic navbar with circular profile avatar brand,
 // exactly 5 navigation items (About, Skills, Projects, Reviews, Contact),
@@ -2138,6 +2509,7 @@ export function AdditionalGitHubRepos({ className = '' }) {
 // -------------------------------------------------------------
 export function Layout({ children }) {
   const [navOpen, setNavOpen] = useState(false);
+  const [revealKey, setRevealKey] = useState(0);
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
@@ -2166,7 +2538,7 @@ export function Layout({ children }) {
 
   const handleNavClick = (e, to) => {
     if (to.startsWith('#')) {
-      e.preventDefault();
+      if (e && e.preventDefault) e.preventDefault();
       setNavOpen(false);
       const targetId = to.slice(1);
       const scrollToTarget = () => {
@@ -2183,11 +2555,36 @@ export function Layout({ children }) {
       };
 
       if (pathname !== '/') {
-        navigate('/' + to);
-        setTimeout(scrollToTarget, 100);
+        navigate('/');
+        setTimeout(scrollToTarget, 120);
       } else {
         scrollToTarget();
       }
+    }
+  };
+
+  const handleExploreClick = (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    setRevealKey((prev) => prev + 1);
+
+    const scrollToQuickAccess = () => {
+      const el = document.getElementById('quick-access');
+      if (el) {
+        const navOffset = 70;
+        const elementPosition = el.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - navOffset;
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: 'smooth'
+        });
+      }
+    };
+
+    if (pathname !== '/') {
+      navigate('/');
+      setTimeout(scrollToQuickAccess, 120);
+    } else {
+      scrollToQuickAccess();
     }
   };
 
@@ -2285,6 +2682,9 @@ export function Layout({ children }) {
         {children}
       </main>
 
+      {/* Upper Showcase Deck Section immediately above the footer */}
+      <FooterShowcaseDeck onNavigate={handleNavClick} revealKey={revealKey} />
+
       {/* Refined Footer: Two Clear Columns on Desktop */}
       <footer id="contact" className="editorial-footer">
         <div className="site-wrapper footer-inner">
@@ -2338,10 +2738,10 @@ export function Layout({ children }) {
                   <span className="footer-promo-sub">check out these links</span>
                 </div>
                 <a
-                  href="#projects"
-                  onClick={(e) => handleNavClick(e, '#projects')}
+                  href="#quick-access"
+                  onClick={handleExploreClick}
                   className="footer-promo-btn"
-                  aria-label="Explore selected work"
+                  aria-label="Explore quick access links"
                 >
                   <span>Explore!</span>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
