@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -19,9 +19,8 @@
 <script>
   (function() {
     try {
-      var saved = localStorage.getItem('theme');
-      var theme = saved || 'dark';
-      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem('theme', 'dark');
+      document.documentElement.setAttribute('data-theme', 'dark');
     } catch(e) {}
   })();
 </script>

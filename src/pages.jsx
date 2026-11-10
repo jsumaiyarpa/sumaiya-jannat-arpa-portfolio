@@ -9,6 +9,7 @@ import { about } from './data/about.js';
 import { gallery } from './data/gallery.js';
 import { reviews } from './data/reviews.js';
 import {
+  Icon,
   Img,
   SectionHeader,
   HeroPortrait,
@@ -20,6 +21,7 @@ import {
   SkillsOverview,
   ReviewsSection,
   FAQSection,
+  HireSection,
   ProjectCard,
   Timeline,
   Socials,
@@ -73,7 +75,9 @@ function LightboxModal({ item, index, total, onNext, onPrev, onClose }) {
         <div className="lightbox-info-col">
           <div className="lightbox-header">
             <span className="sec-tag">{item.category} // {item.year}</span>
-            <button className="lightbox-close-btn" onClick={onClose} aria-label="Close dialog">✕</button>
+            <button className="lightbox-close-btn" onClick={onClose} aria-label="Close dialog">
+              <Icon name="x" size={18} />
+            </button>
           </div>
 
           <h3 className="lightbox-title">{item.title}</h3>
@@ -97,11 +101,13 @@ function LightboxModal({ item, index, total, onNext, onPrev, onClose }) {
 
           <div className="lightbox-nav-actions">
             <button className="btn outline" onClick={onPrev} aria-label="Previous image">
-              ← PREV
+              <Icon name="arrow-left" size={14} />
+              <span>PREV</span>
             </button>
             <span className="lightbox-counter">{index + 1} / {total}</span>
             <button className="btn outline" onClick={onNext} aria-label="Next image">
-              NEXT →
+              <span>NEXT</span>
+              <Icon name="arrow-right" size={14} />
             </button>
           </div>
         </div>
@@ -525,42 +531,12 @@ export function Home() {
           <div className="hero-cover-actions" role="group" aria-label="Hero actions">
             <a href="#projects" className="btn-cover-pill btn-cover-pill-secondary">
               <span>Explore My Works</span>
-              <svg
-                className="btn-cover-icon"
-                xmlns="http://www.w3.org/2000/svg"
-                width="15"
-                height="15"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <path d="M7 17 17 7" />
-                <path d="M7 7h10v10" />
-              </svg>
+              <Icon name="arrow-up-right" size={15} />
             </a>
-
 
             <a href="#contact" className="btn-cover-pill btn-cover-pill-dark">
               <span>Get in Touch</span>
-              <svg
-                className="btn-cover-icon"
-                viewBox="0 0 24 24"
-                width="15"
-                height="15"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <path d="M7 17 17 7" />
-                <path d="M8 7h9v9" />
-              </svg>
+              <Icon name="arrow-up-right" size={15} />
             </a>
 
             <a
@@ -570,23 +546,7 @@ export function Home() {
               aria-label="Download Curriculum Vitae (PDF)"
             >
               <span>Download CV</span>
-              <svg
-                className="btn-cover-icon"
-                xmlns="http://www.w3.org/2000/svg"
-                width="15"
-                height="15"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <path d="m7 10 5 5 5-5" />
-                <path d="M12 15V3" />
-              </svg>
+              <Icon name="download" size={15} />
             </a>
           </div>
 
@@ -603,7 +563,7 @@ export function Home() {
           <div className="ref-about-intro-grid">
             <div className="ref-about-portrait-wrap">
               <img
-                src={site.portrait || '/images/portrait.jpg'}
+                src="/images/profile_2.png"
                 alt="Sumaiya Jannat Arpa"
                 className="ref-about-portrait-img"
                 loading="lazy"
@@ -639,7 +599,6 @@ export function Home() {
                   <h3 id="panel-heading-education" className="ref-panel-title">
                     Education
                   </h3>
-                  <p className="ref-panel-kicker">Academic journey &amp; formal foundations</p>
                 </div>
               </div>
 
@@ -650,7 +609,10 @@ export function Home() {
                     const cardId = edu.id || cardNum;
                     const isExpanded = activeEduCard === cardId;
                     const bentClass = `edu-bent-card-${(idx % 3) + 1}`;
-                    const stageTag = edu.stageTag || edu.stage_tag || (idx === 0 ? 'UNDERGRADUATE // B.SC.' : (idx === 1 ? 'HIGHER SECONDARY // HSC' : 'SECONDARY // SSC'));
+                    const rawStageTag = edu.stageTag || edu.stage_tag;
+                    const stageTag = rawStageTag
+                      ? rawStageTag.replace(/\s*\/\/\s*/g, ' · ')
+                      : (idx === 0 ? 'B.Sc. · Undergraduate' : (idx === 1 ? 'HSC · Higher Secondary' : 'SSC · Secondary'));
                     const isMerit = (Array.isArray(edu.highlights) && edu.highlights.some((h) => typeof h === 'string' && h.toLowerCase().includes('merit'))) ||
                       (typeof edu.details === 'string' && edu.details.toLowerCase().includes('merit'));
 
@@ -680,7 +642,6 @@ export function Home() {
                           }
                         }}
                       >
-                        <div className="edu-card-glass-sheen" aria-hidden="true" />
                         <div className="edu-card-inner">
                           <div className="edu-card-topbar">
                             <div className="edu-institution-cluster">
@@ -702,7 +663,8 @@ export function Home() {
                           <div className="edu-highlights-pills">
                             {isMerit && (
                               <span className="edu-pill edu-pill-merit">
-                                <span className="edu-pill-icon">★</span> 100% Merit Scholarship Awardee
+                                <span className="edu-pill-icon"><Icon name="star" size={12} strokeWidth={2} style={{ fill: 'currentColor' }} /></span>
+                                <span>100% Merit Scholarship Awardee</span>
                               </span>
                             )}
                             {gpaText && (
@@ -752,9 +714,6 @@ export function Home() {
                   <h3 id="panel-heading-experience" className="ref-panel-title">
                     Experience &amp; Leadership
                   </h3>
-                  <p className="ref-panel-kicker">
-                    Community leadership, outreach &amp; initiative progression
-                  </p>
                 </div>
 
                 <div className="staircase-sort-toggle" role="group" aria-label="Staircase order">
@@ -764,7 +723,8 @@ export function Home() {
                     onClick={() => setExpSortAscending(true)}
                     aria-label="View career progression from early foundations to leadership"
                   >
-                    Progression (2018 → 2025) ↑
+                    <span>Progression (2018–2025)</span>
+                    <Icon name="arrow-up" size={13} />
                   </button>
                   <button
                     type="button"
@@ -772,7 +732,8 @@ export function Home() {
                     onClick={() => setExpSortAscending(false)}
                     aria-label="View recent experience first"
                   >
-                    Recent First ↓
+                    <span>Recent First</span>
+                    <Icon name="arrow-down" size={13} />
                   </button>
                 </div>
               </div>
@@ -854,7 +815,8 @@ export function Home() {
                                 className="staircase-announcement-link"
                                 onClick={(e) => e.stopPropagation()}
                               >
-                                Official post announcement ↗
+                                <span>Official post announcement</span>
+                                <Icon name="arrow-up-right" size={13} />
                               </a>
                             </div>
                           )}
@@ -881,7 +843,7 @@ export function Home() {
                               aria-label={isExpanded ? `Hide details for ${item.title}` : `View details for ${item.title}`}
                             >
                               <span>{isExpanded ? 'View less' : 'View details'}</span>
-                              <span aria-hidden="true">{isExpanded ? ' ✕' : ' ↗'}</span>
+                              <Icon name={isExpanded ? 'x' : 'arrow-up-right'} size={13} />
                             </button>
                           </div>
                         </div>
@@ -949,12 +911,15 @@ export function Home() {
                                     loading="lazy"
                                   />
                                   <span className="credential-zoom-hint" aria-hidden="true">
-                                    Click to enlarge ⤢
+                                    <span>Click to enlarge</span>
+                                    <Icon name="arrow-up-right" size={12} />
                                   </span>
                                 </div>
                               ) : (
                                 <div className="credential-thumbnail-placeholder">
-                                  <span className="ph-icon" aria-hidden="true">📜</span>
+                                  <span className="ph-icon" aria-hidden="true">
+                                    <Icon name="file-text" size={32} />
+                                  </span>
                                   <strong>{item.organization}</strong>
                                   <span className="ph-hint">Official Academic Record</span>
                                 </div>
@@ -988,7 +953,8 @@ export function Home() {
                                   className="ref-panel-cert-link"
                                   onClick={() => setActiveCredentialItem(item)}
                                 >
-                                  View Details &amp; Verify ↗
+                                  <span>View Details &amp; Verify</span>
+                                  <Icon name="arrow-up-right" size={13} />
                                 </button>
                                 {item.url && (
                                   <a
@@ -998,7 +964,8 @@ export function Home() {
                                     className="credential-external-link"
                                     onClick={(e) => e.stopPropagation()}
                                   >
-                                    External Link ↗
+                                    <span>External Link</span>
+                                    <Icon name="arrow-up-right" size={13} />
                                   </a>
                                 )}
                               </div>
@@ -1102,7 +1069,7 @@ export function Home() {
               onClick={() => setActiveExperienceItem(null)}
               aria-label="Close experience details"
             >
-              ×
+              <Icon name="x" size={18} />
             </button>
 
             <span className="visual-stack-eyebrow">
@@ -1144,7 +1111,8 @@ export function Home() {
                 rel="noopener noreferrer"
                 className="ref-panel-cert-link"
               >
-                View post ↗
+                <span>View post</span>
+                <Icon name="arrow-up-right" size={13} />
               </a>
             )}
           </section>
@@ -1170,7 +1138,7 @@ export function Home() {
               onClick={() => setActiveCredentialItem(null)}
               aria-label="Close credential details"
             >
-              ×
+              <Icon name="x" size={18} />
             </button>
 
             <span className="visual-stack-eyebrow">
@@ -1214,7 +1182,8 @@ export function Home() {
                   rel="noopener noreferrer"
                   className="ref-panel-cert-link"
                 >
-                  Certificate ↗
+                  <span>Certificate</span>
+                  <Icon name="arrow-up-right" size={13} />
                 </a>
               </div>
             )}
@@ -1226,11 +1195,9 @@ export function Home() {
       {/* 04. SKILLS SECTION */}
       <section id="skills" className="page-section section-skills-clean">
         <div className="site-wrapper">
-          <div className="skills-section-header-wrap">
-            <h2 className="ref-about-heading skills-section-heading">
-              Curated Skills &amp; <span className="ref-about-heading-bold">Capabilities</span>
-            </h2>
-          </div>
+          <SectionHeader
+            title={<>Curated Skills &amp; <span className="ref-about-heading-bold">Capabilities</span></>}
+          />
 
           <SkillsCapsules />
         </div>
@@ -1279,6 +1246,18 @@ export function Home() {
           />
 
           <FAQSection />
+        </div>
+      </section>
+
+      {/* 08. HIRE SUMAIYA SECTION */}
+      <section id="hire" className="page-section section-hire">
+        <span id="hire-sumaiya" className="section-anchor-hidden" aria-hidden="true" />
+        <div className="site-wrapper">
+          <SectionHeader
+            title={<>Hire <span className="ref-about-heading-bold">Sumaiya</span></>}
+          />
+
+          <HireSection />
         </div>
       </section>
     </>
@@ -1386,7 +1365,10 @@ export function Project() {
           <span className="sec-tag">ERROR 404</span>
           <h2>PROJECT NOT FOUND</h2>
           <p>The requested project slug does not exist in the catalog.</p>
-          <Link to="/work" className="btn solid">RETURN TO WORK DIRECTORY ↗</Link>
+          <Link to="/work" className="btn solid">
+            <span>RETURN TO WORK DIRECTORY</span>
+            <Icon name="arrow-up-right" size={14} />
+          </Link>
         </div>
       </div>
     );
@@ -1408,7 +1390,8 @@ export function Project() {
       <div className="cs-top-bar">
         <div className="site-wrapper cs-top-inner">
           <Link to="/work" className="cs-back-link">
-            ← Back to Selected Work
+            <Icon name="arrow-left" size={14} />
+            <span>Back to Selected Work</span>
           </Link>
           <span className="cs-category-badge">{cat.label}</span>
           {p.orderNum ? (
@@ -1423,7 +1406,7 @@ export function Project() {
           <div className="cs-hero-grid">
             <div className="cs-hero-main">
               <span className="sec-tag">
-                {cat.tag || 'PROJECT'} {hasStatus ? `// ${p.status}` : ''}
+                {cat.label || 'Project'} {hasStatus ? `· ${p.status}` : ''}
               </span>
               <h1 className="cs-main-title">{p.title}</h1>
               {p.summary ? <p className="cs-summary-lead">{p.summary}</p> : null}
@@ -1432,34 +1415,34 @@ export function Project() {
             <aside className="cs-meta-sidebar">
               <div className="cs-meta-box">
                 <div className="cs-meta-field">
-                  <span className="cs-meta-label">CATEGORY:</span>
+                  <span className="cs-meta-label">Category</span>
                   <span className="cs-meta-value">{cat.label}</span>
                 </div>
 
                 {hasRole ? (
                   <div className="cs-meta-field">
-                    <span className="cs-meta-label">ROLE:</span>
+                    <span className="cs-meta-label">Role</span>
                     <span className="cs-meta-value">{p.role}</span>
                   </div>
                 ) : null}
 
                 {hasTimeline ? (
                   <div className="cs-meta-field">
-                    <span className="cs-meta-label">TIMELINE:</span>
+                    <span className="cs-meta-label">Timeline</span>
                     <span className="cs-meta-value">{p.timeline}</span>
                   </div>
                 ) : null}
 
                 {hasStatus ? (
                   <div className="cs-meta-field">
-                    <span className="cs-meta-label">STATUS:</span>
+                    <span className="cs-meta-label">Status</span>
                     <span className="cs-meta-value">{p.status}</span>
                   </div>
                 ) : null}
 
                 {hasTools ? (
                   <div className="cs-meta-field">
-                    <span className="cs-meta-label">TOOLS &amp; STACK:</span>
+                    <span className="cs-meta-label">Tools &amp; Stack</span>
                     <div className="cs-tools-wrap">
                       {p.tools.map((t, idx) => (
                         <span key={idx} className="tool-pill">{t}</span>
@@ -1477,7 +1460,8 @@ export function Project() {
                         rel="noopener noreferrer"
                         className="btn solid w-full text-center"
                       >
-                        {p.category === 'uiux' ? 'View Prototype / Design ↗' : 'Live Project ↗'}
+                        <span>{p.category === 'uiux' ? 'View Prototype / Design' : 'Live Project'}</span>
+                        <Icon name="arrow-up-right" size={14} />
                       </a>
                     ) : null}
                     {hasRepo ? (
@@ -1487,7 +1471,8 @@ export function Project() {
                         rel="noopener noreferrer"
                         className="btn outline w-full text-center"
                       >
-                        Source Code ↗
+                        <span>Source Code</span>
+                        <Icon name="arrow-up-right" size={14} />
                       </a>
                     ) : null}
                   </div>
@@ -1516,7 +1501,8 @@ export function Project() {
       {/* FOOTER DIRECTORY LINK */}
       <div className="site-wrapper" style={{ paddingTop: '1rem', paddingBottom: '4.5rem', textAlign: 'center' }}>
         <Link to="/work" className="btn outline">
-          ← Return to All Projects
+          <Icon name="arrow-left" size={14} />
+          <span>Return to All Projects</span>
         </Link>
       </div>
     </article>
@@ -1593,7 +1579,10 @@ export function Gallery() {
                     <div className="archive-item-hover">
                       <span className="archive-hover-title">{item.title}</span>
                       <span className="archive-hover-org">{item.organization}</span>
-                      <span className="archive-expand-pill">Inspect ↗</span>
+                      <span className="archive-expand-pill">
+                        <span>Inspect</span>
+                        <Icon name="arrow-up-right" size={12} />
+                      </span>
                     </div>
                   </div>
                   <div className="archive-caption-line">
@@ -1738,10 +1727,12 @@ export function About() {
             {/* ACTIONS */}
             <div className="about-actions-row">
               <Link to="/experience" className="btn solid">
-                Explore Leadership &amp; Experience ↗
+                <span>Explore Leadership &amp; Experience</span>
+                <Icon name="arrow-up-right" size={14} />
               </Link>
               <Link to="/resume" className="btn outline">
-                Download Curriculum Vitae ↘
+                <span>Download Curriculum Vitae</span>
+                <Icon name="arrow-down" size={14} />
               </Link>
             </div>
           </div>
@@ -1881,7 +1872,8 @@ export function Education() {
                   <p className="cred-desc">{cert.description || cert.certificateType || cert.credentialId}</p>
                   {cert.url && (
                     <a href={cert.url} target="_blank" rel="noopener noreferrer" className="editorial-link mt-2">
-                      Verify Credential ↗
+                      <span>Verify Credential</span>
+                      <Icon name="arrow-up-right" size={13} />
                     </a>
                   )}
                 </article>
@@ -1992,7 +1984,8 @@ export function Resume() {
               <div className="resume-cta-cluster">
                 {site.resume.file && site.resume.file.trim() !== '' ? (
                   <a href={site.resume.file} download="Sumaiya_Jannat_Arpa_Resume.pdf" className="btn solid w-full text-center">
-                    Download PDF Resume ↘
+                    <span>Download PDF Resume</span>
+                    <Icon name="download" size={14} />
                   </a>
                 ) : null}
                 <button
@@ -2000,13 +1993,15 @@ export function Resume() {
                   onClick={() => window.print()}
                   className="btn outline w-full text-center mt-2"
                 >
-                  Print / Export to PDF 🖨️
+                  <span>Print / Export to PDF</span>
+                  <Icon name="printer" size={14} />
                 </button>
               </div>
 
               <div className="resume-placeholder-box mt-3">
                 <p className="placeholder-note">
-                  💡 <strong>PDF Placement:</strong> To link your official PDF document, place your file at <code>public/resume/Sumaiya_Jannat_Arpa_Resume.pdf</code>.
+                  <Icon name="lightbulb" size={14} style={{ marginRight: '0.4rem', verticalAlign: '-2px' }} />
+                  <strong>PDF Placement:</strong> To link your official PDF document, place your file at <code>public/resume/Sumaiya_Jannat_Arpa_Resume.pdf</code>.
                 </p>
               </div>
 

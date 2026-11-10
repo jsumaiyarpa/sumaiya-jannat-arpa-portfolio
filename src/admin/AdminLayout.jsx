@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { NavLink, useNavigate, useLocation, Link } from 'react-router-dom';
-import { ThemeToggle } from '../components.jsx';
 import { adminApi } from './adminApi.js';
 import './admin.css';
 
@@ -183,7 +182,6 @@ export default function AdminLayout({ children }) {
           </div>
 
           <div className="admin-topbar-right">
-            <ThemeToggle />
           </div>
         </header>
 

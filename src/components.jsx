@@ -16,67 +16,245 @@ export function usePageTitle(t) {
 }
 
 // -------------------------------------------------------------
-// THEME TOGGLE COMPONENT
-// Supports Light mode (default) and Art-directed Dark mode.
-// Persists in localStorage and prevents flash of unstyled theme.
+// DESIGN SYSTEM LUCIDE ICON COMPONENT
+// Consistent stroke, sizing, and vector aesthetics across the portfolio.
 // -------------------------------------------------------------
-export function ThemeToggle({ className = '' }) {
-  const [theme, setTheme] = useState(() => {
-    try {
-      return localStorage.getItem('theme') || document.documentElement.getAttribute('data-theme') || 'dark';
-    } catch (e) {
-      return 'dark';
-    }
-  });
+const ICON_REGISTRY = {
+  'arrow-up-right': (
+    <>
+      <path d="M7 7h10v10" />
+      <path d="M7 17 17 7" />
+    </>
+  ),
+  'arrow-right': (
+    <>
+      <path d="M5 12h14" />
+      <path d="m12 5 7 7-7 7" />
+    </>
+  ),
+  'arrow-left': (
+    <>
+      <path d="m12 19-7-7 7-7" />
+      <path d="M19 12H5" />
+    </>
+  ),
+  'arrow-down': (
+    <>
+      <path d="M12 5v14" />
+      <path d="m19 12-7 7-7-7" />
+    </>
+  ),
+  'arrow-up': (
+    <>
+      <path d="m5 12 7-7 7 7" />
+      <path d="M12 19V5" />
+    </>
+  ),
+  x: (
+    <>
+      <path d="M18 6 6 18" />
+      <path d="m6 6 12 12" />
+    </>
+  ),
+  check: <path d="M20 6 9 17l-5-5" />,
+  star: (
+    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+  ),
+  download: (
+    <>
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+      <polyline points="7 10 12 15 17 10" />
+      <line x1="12" y1="15" x2="12" y2="3" />
+    </>
+  ),
+  'external-link': (
+    <>
+      <path d="M15 3h6v6" />
+      <path d="M10 14 21 3" />
+      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+    </>
+  ),
+  printer: (
+    <>
+      <polyline points="6 9 6 2 18 2 18 9" />
+      <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+      <rect width="12" height="8" x="6" y="14" />
+    </>
+  ),
+  lightbulb: (
+    <>
+      <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5" />
+      <path d="M9 18h6" />
+      <path d="M10 22h4" />
+    </>
+  ),
+  award: (
+    <>
+      <circle cx="12" cy="8" r="6" />
+      <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11" />
+    </>
+  ),
+  'graduation-cap': (
+    <>
+      <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+      <path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5" />
+    </>
+  ),
+  briefcase: (
+    <>
+      <rect width="20" height="14" x="2" y="7" rx="2" ry="2" />
+      <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+    </>
+  ),
+  'file-text': (
+    <>
+      <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />
+      <path d="M14 2v4a2 2 0 0 0 2 2h4" />
+      <path d="M10 9H8" />
+      <path d="M16 13H8" />
+      <path d="M16 17H8" />
+    </>
+  ),
+  sparkles: (
+    <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+  ),
+  'chevron-down': <path d="m6 9 6 6 6-6" />,
+  'chevron-up': <path d="m18 15-6-6-6 6" />,
+  'chevron-right': <path d="m9 18 6-6-6-6" />,
+  'chevron-left': <path d="m15 18-6-6 6-6" />,
+  github: (
+    <>
+      <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4" />
+      <path d="M9 18c-4.51 2-5-2-7-2" />
+    </>
+  ),
+  mail: (
+    <>
+      <rect width="20" height="16" x="2" y="4" rx="2" />
+      <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+    </>
+  ),
+  compass: (
+    <>
+      <circle cx="12" cy="12" r="10" />
+      <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
+    </>
+  ),
+  user: (
+    <>
+      <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+      <circle cx="12" cy="7" r="4" />
+    </>
+  ),
+  'message-square': (
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+  ),
+  folder: (
+    <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z" />
+  ),
+  layers: (
+    <>
+      <path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z" />
+      <path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65" />
+      <path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65" />
+    </>
+  ),
+  sun: (
+    <>
+      <circle cx="12" cy="12" r="5" />
+      <line x1="12" y1="1" x2="12" y2="3" />
+      <line x1="12" y1="21" x2="12" y2="23" />
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+      <line x1="1" y1="12" x2="3" y2="12" />
+      <line x1="21" y1="12" x2="23" y2="12" />
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+    </>
+  ),
+  moon: <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />,
+  plus: (
+    <>
+      <path d="M5 12h14" />
+      <path d="M12 5v14" />
+    </>
+  ),
+  slides: (
+    <>
+      <rect width="18" height="14" x="3" y="3" rx="2" />
+      <path d="M3 9h18" />
+      <path d="m10 21 2-4 2 4" />
+    </>
+  ),
+  palette: (
+    <>
+      <circle cx="13.5" cy="6.5" r=".5" fill="currentColor" />
+      <circle cx="17.5" cy="10.5" r=".5" fill="currentColor" />
+      <circle cx="8.5" cy="7.5" r=".5" fill="currentColor" />
+      <circle cx="6.5" cy="12.5" r=".5" fill="currentColor" />
+      <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z" />
+    </>
+  ),
+  'help-circle': (
+    <>
+      <circle cx="12" cy="12" r="10" />
+      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+      <path d="M12 17h.01" />
+    </>
+  ),
+  'map-pin': (
+    <>
+      <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" />
+      <circle cx="12" cy="10" r="3" />
+    </>
+  ),
+  send: (
+    <>
+      <path d="m22 2-7 20-4-9-9-4Z" />
+      <path d="M22 2 11 13" />
+    </>
+  ),
+  copy: (
+    <>
+      <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
+      <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
+    </>
+  ),
+  'check-circle': (
+    <>
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+      <polyline points="22 4 12 14.01 9 11.01" />
+    </>
+  ),
+};
 
-  useEffect(() => {
-    try {
-      document.documentElement.setAttribute('data-theme', theme);
-      localStorage.setItem('theme', theme);
-      const metaThemeColor = document.getElementById('theme-color-meta');
-      if (metaThemeColor) {
-        metaThemeColor.setAttribute('content', theme === 'light' ? '#F4F6FA' : '#080A0F');
-      }
-    } catch (e) {}
-  }, [theme]);
-
-  const toggleTheme = () => {
-    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
-  };
-
-  const isDark = theme === 'dark';
-
+export function Icon({
+  name,
+  size = 16,
+  strokeWidth = 1.8,
+  className = '',
+  style = {},
+  ariaHidden = true,
+  title,
+}) {
+  const content = ICON_REGISTRY[name] || ICON_REGISTRY['arrow-up-right'];
   return (
-    <button
-      type="button"
-      className={`theme-toggle-btn ${className}`}
-      onClick={toggleTheme}
-      aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-      title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+    <svg
+      className={`lucide-icon lucide-${name} ${className}`}
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden={ariaHidden ? 'true' : undefined}
+      style={{ display: 'inline-block', verticalAlign: 'middle', flexShrink: 0, ...style }}
     >
-      <span className="theme-toggle-icon" aria-hidden="true">
-        {isDark ? (
-          // Sun Icon (Switch to Light)
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="5" />
-            <line x1="12" y1="1" x2="12" y2="3" />
-            <line x1="12" y1="21" x2="12" y2="23" />
-            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-            <line x1="1" y1="12" x2="3" y2="12" />
-            <line x1="21" y1="12" x2="23" y2="12" />
-            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
-            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-          </svg>
-        ) : (
-          // Moon Icon (Switch to Dark)
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-          </svg>
-        )}
-      </span>
-      <span className="theme-toggle-label">{isDark ? 'LIGHT' : 'DARK'}</span>
-    </button>
+      {title && <title>{title}</title>}
+      {content}
+    </svg>
   );
 }
 
@@ -135,10 +313,10 @@ export function ArchitecturalPlaceholder({ category = 'software', label = '', ra
             <div className="ph-bezier-spec">
               <svg viewBox="0 0 120 60" className="ph-bezier-curve" aria-hidden="true">
                 <path d="M 10 50 C 40 10, 80 10, 110 50" fill="none" stroke="currentColor" strokeWidth="1.5" />
-                <circle cx="10" cy="50" r="3" fill="#8EA9D4" />
+                <circle cx="10" cy="50" r="3" fill="#8EA5C8" />
                 <circle cx="40" cy="10" r="2.5" fill="currentColor" />
                 <circle cx="80" cy="10" r="2.5" fill="currentColor" />
-                <circle cx="110" cy="50" r="3" fill="#8EA9D4" />
+                <circle cx="110" cy="50" r="3" fill="#8EA5C8" />
               </svg>
               <span className="ph-spec-note">RESEARCH &amp; PERSONAS</span>
             </div>
@@ -455,7 +633,7 @@ export function GlassmorphicCardStack() {
                 <ul className="glass-deliverable-list">
                   {item.deliverables.map((del, dIdx) => (
                     <li key={dIdx} className="glass-deliverable-item">
-                      <span className="glass-bullet" aria-hidden="true">↗</span>
+                      <span className="glass-bullet" aria-hidden="true"><Icon name="arrow-up-right" size={12} /></span>
                       <span>{del}</span>
                     </li>
                   ))}
@@ -662,7 +840,9 @@ export function ProjectCarousel({ projects = [] }) {
                     <h3 className="carousel-project-title">
                       <Link to={`/work/${proj.slug}`} tabIndex={isCurrent ? 0 : -1} className="carousel-title-link">
                         <span>{proj.title}</span>
-                        <span className="carousel-arrow" aria-hidden="true"> ↗</span>
+                        <span className="carousel-arrow" aria-hidden="true">
+                          <Icon name="arrow-up-right" size={15} />
+                        </span>
                       </Link>
                     </h3>
 
@@ -687,7 +867,8 @@ export function ProjectCarousel({ projects = [] }) {
                             tabIndex={isCurrent ? 0 : -1}
                             aria-label={`View ${proj.title} source code on GitHub`}
                           >
-                            GitHub ↗
+                            <span>GitHub</span>
+                            <Icon name="arrow-up-right" size={13} />
                           </a>
                         )}
                         <Link
@@ -695,7 +876,8 @@ export function ProjectCarousel({ projects = [] }) {
                           className="btn solid carousel-btn-sm"
                           tabIndex={isCurrent ? 0 : -1}
                         >
-                          View Project ↗
+                          <span>View Project</span>
+                          <Icon name="arrow-up-right" size={13} />
                         </Link>
                       </div>
                     </div>
@@ -716,7 +898,7 @@ export function ProjectCarousel({ projects = [] }) {
           aria-label="Previous Project"
           title="Previous (Arrow Left)"
         >
-          <span aria-hidden="true">←</span>
+          <Icon name="arrow-left" size={16} />
         </button>
 
         <div className="carousel-progress-group">
@@ -744,7 +926,7 @@ export function ProjectCarousel({ projects = [] }) {
           aria-label="Next Project"
           title="Next (Arrow Right)"
         >
-          <span aria-hidden="true">→</span>
+          <Icon name="arrow-right" size={16} />
         </button>
       </div>
 
@@ -852,7 +1034,7 @@ export function ProjectCard({ project, index = 0, variant = 'default' }) {
         <h3 className="project-title">
           <Link to={`/work/${p.slug}`} className="project-title-link">
             <span>{p.title}</span>
-            <span className="project-arrow" aria-hidden="true"> ↗</span>
+            <span className="project-arrow" aria-hidden="true"><Icon name="arrow-up-right" size={14} /></span>
           </Link>
         </h3>
 
@@ -937,7 +1119,7 @@ export function Socials() {
             aria-label={`${s.label}: ${s.handle}`}
           >
             <span>{s.handle}</span>
-            <span className="link-arrow" aria-hidden="true"> ↗</span>
+            <span className="link-arrow" aria-hidden="true"><Icon name="arrow-up-right" size={13} /></span>
           </a>
         </div>
       ))}
@@ -961,7 +1143,7 @@ export function CVButton({ className = '', variant = 'solid' }) {
       aria-label="Download Curriculum Vitae (PDF)"
     >
       <span>Download CV</span>
-      <span aria-hidden="true"> ↓</span>
+      <Icon name="arrow-down" size={14} />
     </a>
   );
 }
@@ -1116,7 +1298,7 @@ export function CategoryProjectModal({ categoryId, onClose }) {
             onClick={onClose}
             aria-label="Return to category deck"
           >
-            <span aria-hidden="true">←</span>
+            <Icon name="arrow-left" size={16} />
             <span>Return to Categories</span>
           </button>
 
@@ -1146,7 +1328,7 @@ export function CategoryProjectModal({ categoryId, onClose }) {
             onClick={onClose}
             aria-label="Close project modal"
           >
-            ✕
+            <Icon name="x" size={18} />
           </button>
         </div>
 
@@ -1183,7 +1365,10 @@ export function CategoryProjectModal({ categoryId, onClose }) {
                     </div>
                     <div className="cat-design-footer">
                       <h3 className="cat-design-title">{p.title}</h3>
-                      <span className="cat-design-view-hint" aria-hidden="true">View ↗</span>
+                      <span className="cat-design-view-hint" aria-hidden="true">
+                        <span>View</span>
+                        <Icon name="arrow-up-right" size={13} />
+                      </span>
                     </div>
                   </Link>
                 </article>
@@ -1217,7 +1402,9 @@ export function CategoryProjectModal({ categoryId, onClose }) {
                       >
                         <GitHubIcon size={18} className="cat-sqa-git-icon" />
                         <span>{p.title}</span>
-                        <span className="cat-ext-arrow" aria-hidden="true">↗</span>
+                        <span className="cat-ext-arrow" aria-hidden="true">
+                          <Icon name="arrow-up-right" size={14} />
+                        </span>
                       </a>
                     </h3>
 
@@ -1241,7 +1428,7 @@ export function CategoryProjectModal({ categoryId, onClose }) {
                       >
                         <GitHubIcon size={16} />
                         <span>View Repository on GitHub</span>
-                        <span aria-hidden="true">↗</span>
+                        <Icon name="arrow-up-right" size={13} />
                       </a>
                     </div>
                   </div>
@@ -1287,7 +1474,7 @@ export function CategoryProjectModal({ categoryId, onClose }) {
                         >
                           <GitHubIcon size={14} />
                           <span>GitHub</span>
-                          <span aria-hidden="true">↗</span>
+                          <Icon name="arrow-up-right" size={13} />
                         </a>
                       )}
                       {p.link && (
@@ -1300,7 +1487,7 @@ export function CategoryProjectModal({ categoryId, onClose }) {
                         >
                           {p.category === 'uiux' ? <BehanceIcon size={14} /> : null}
                           <span>{p.category === 'uiux' ? 'Behance' : 'Live Demo'}</span>
-                          <span aria-hidden="true">↗</span>
+                          <Icon name="arrow-up-right" size={13} />
                         </a>
                       )}
                       <Link
@@ -1309,7 +1496,8 @@ export function CategoryProjectModal({ categoryId, onClose }) {
                         onClick={onClose}
                         aria-label={`View ${p.title} project details`}
                       >
-                        View Project ↗
+                        <span>View Project</span>
+                        <Icon name="arrow-up-right" size={13} />
                       </Link>
                     </div>
                   </div>
@@ -1329,7 +1517,8 @@ export function CategoryProjectModal({ categoryId, onClose }) {
             className="btn outline btn-sm cat-modal-bottom-return"
             onClick={onClose}
           >
-            ← Return to Categories
+            <Icon name="arrow-left" size={14} />
+            <span>Return to Categories</span>
           </button>
         </div>
       </div>
@@ -1404,23 +1593,25 @@ export function FourCategoryCards({ onSelectCategory }) {
   return (
     <div className="cat-deck-wrapper" role="region" aria-label="Four Core Project Categories">
       {/* Category Navigation Pills */}
-      <div className="cat-deck-tabs" role="tablist" aria-label="Project Category Selection">
-        {fourCategories.map((cat) => {
-          const isActive = cat.id === activeId;
-          return (
-            <button
-              key={cat.id}
-              type="button"
-              role="tab"
-              aria-selected={isActive}
-              className={`cat-deck-tab ${isActive ? 'is-active' : ''}`}
-              onClick={() => setActiveId(cat.id)}
-            >
-              <span>{cat.title}</span>
-              <span className="cat-deck-tab-badge">{cat.count}</span>
-            </button>
-          );
-        })}
+      <div className="skills-tabs-container">
+        <div className="cat-deck-tabs" role="tablist" aria-label="Project Category Selection">
+          {fourCategories.map((cat) => {
+            const isActive = cat.id === activeId;
+            return (
+              <button
+                key={cat.id}
+                type="button"
+                role="tab"
+                aria-selected={isActive}
+                className={`cat-deck-tab ${isActive ? 'is-active' : ''}`}
+                onClick={() => setActiveId(cat.id)}
+              >
+                <span>{cat.title}</span>
+                <span className="cat-deck-tab-badge">{cat.count}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* 4-Card Layered Crest / T-Deck Stage */}
@@ -1499,7 +1690,9 @@ export function FourCategoryCards({ onSelectCategory }) {
                   }}
                 >
                   <span>Explore Collection</span>
-                  <span className="cat-cta-arrow" aria-hidden="true"> ↗</span>
+                  <span className="cat-cta-arrow" aria-hidden="true">
+                    <Icon name="arrow-up-right" size={14} />
+                  </span>
                 </div>
               </div>
             </article>
@@ -1522,12 +1715,12 @@ export function FourCategoryCards({ onSelectCategory }) {
 // -------------------------------------------------------------
 export function SkillsCapsules() {
   const { skills: liveSkills, hasLoaded, error } = useSkills();
-  const categories = hasLoaded
-    ? (Array.isArray(liveSkills) && liveSkills.length > 0 ? liveSkills : [])
+  const rawCategories = hasLoaded
+    ? (Array.isArray(liveSkills) && liveSkills.length > 0 ? liveSkills : skillCategories)
     : (error ? skillCategories : (Array.isArray(liveSkills) && liveSkills.length > 0 ? liveSkills : skillCategories));
+  const categories = (Array.isArray(rawCategories) && rawCategories.length > 0) ? rawCategories : skillCategories;
 
   const [activeCategory, setActiveCategory] = useState(categories[0]?.id || 'uiux');
-  const [isAllExpanded, setIsAllExpanded] = useState(false);
 
   // Keep activeCategory valid when categories change
   useEffect(() => {
@@ -1560,156 +1753,107 @@ export function SkillsCapsules() {
       role="region"
       aria-label="Layered Glass Stack of Skills"
     >
-      {/* Stack Navigation & View Mode Controls */}
-      <div className="skills-glass-toolbar">
-        <div className="skills-layer-tabs" role="tablist" aria-label="Skill Category Layers">
-          {categories.map((grp) => {
-            const isActive = !isAllExpanded && activeCategory === grp.id;
+      {/* Category Navigation Pills (Matching Projects Category Tabs) */}
+      <div className="skills-tabs-container">
+        <div className="cat-deck-tabs skills-deck-tabs" role="tablist" aria-label="Skills Category Selection">
+          {categories.map((cat) => {
+            const isActive = activeCategory === cat.id;
+            const count = (cat.skills || []).length;
             return (
               <button
-                key={grp.id}
+                key={cat.id}
                 type="button"
                 role="tab"
                 aria-selected={isActive}
-                aria-controls={`skills-layer-${grp.id}`}
-                className={`skills-layer-tab ${isActive ? 'is-active' : ''}`}
-                onClick={() => {
-                  setActiveCategory(grp.id);
-                  if (isAllExpanded) setIsAllExpanded(false);
-                }}
+                aria-controls={`skills-layer-${cat.id}`}
+                className={`cat-deck-tab ${isActive ? 'is-active' : ''}`}
+                onClick={() => setActiveCategory(cat.id)}
               >
-                <span className="skills-tab-indicator" aria-hidden="true" />
-                <span className="skills-tab-label">{grp.title}</span>
-                <span className="skills-tab-pill">{(grp.skills || []).length}</span>
+                <span>{cat.title}</span>
+                <span className="cat-deck-tab-badge">{count}</span>
               </button>
             );
           })}
         </div>
-
-        <button
-          type="button"
-          className="skills-stack-toggle-btn"
-          onClick={() => setIsAllExpanded((prev) => !prev)}
-          aria-label={isAllExpanded ? 'Switch to Layered Glass Stack view' : 'View all categories expanded'}
-        >
-          <span className="skills-toggle-icon" aria-hidden="true">
-            {isAllExpanded ? '⊞' : '☰'}
-          </span>
-          <span>{isAllExpanded ? 'Layered Stack' : `View All (${categories.length})`}</span>
-        </button>
       </div>
 
-      {/* Presentation Mode: All Expanded vs Layered Glass Stack */}
-      {isAllExpanded ? (
-        <div className="skills-expanded-deck">
-          {categories.map((grp) => (
-            <article
-              key={grp.id}
-              id={`skills-layer-${grp.id}`}
-              className="skills-glass-card skills-glass-card--standalone"
-            >
-              <header className="skills-glass-header">
-                <div className="skills-glass-header-text">
-                  <div className="skills-glass-title-row">
-                    <h3 className="skills-glass-title">{grp.title}</h3>
-                    <span className="skills-glass-badge">{(grp.skills || []).length} Skills</span>
-                  </div>
-                  {grp.blurb && <p className="skills-glass-blurb">{grp.blurb}</p>}
-                </div>
-              </header>
-
+      {/* Signature Layered Glass Stack Stage */}
+      <div className="skills-glass-stack-stage">
+        {/* Partially Visible Background Glass Layers */}
+        <div className="skills-background-layers-wrap" aria-hidden="true">
+          {backgroundCategories.map((grp, bgIdx) => {
+            const depthRank = backgroundCategories.length - bgIdx; // 3, 2, 1
+            return (
               <div
-                className="skills-glass-capsules-grid"
-                role="list"
-                aria-label={`${grp.title} competencies`}
+                key={grp.id}
+                className={`skills-glass-bg-layer skills-bg-depth-${depthRank}`}
+                onClick={() => setActiveCategory(grp.id)}
+                role="button"
+                tabIndex={0}
+                aria-label={`Bring ${grp.title} layer to front`}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setActiveCategory(grp.id);
+                  }
+                }}
               >
-                {(grp.skills || []).map((skill, sIdx) => {
-                  const skillName = typeof skill === 'string' ? skill : skill.name;
-                  return (
-                    <span key={sIdx} className="skills-glass-capsule" role="listitem">
-                      {skillName}
-                    </span>
-                  );
-                })}
-              </div>
-            </article>
-          ))}
-        </div>
-      ) : (
-        <div className="skills-glass-stack-stage">
-          {/* Partially Visible Background Glass Layers */}
-          <div className="skills-background-layers-wrap" aria-hidden="true">
-            {backgroundCategories.map((grp, bgIdx) => {
-              const depthRank = backgroundCategories.length - bgIdx; // 3, 2, 1
-              return (
-                <div
-                  key={grp.id}
-                  className={`skills-glass-bg-layer skills-bg-depth-${depthRank}`}
-                  onClick={() => setActiveCategory(grp.id)}
-                  role="button"
-                  tabIndex={0}
-                  aria-label={`Bring ${grp.title} layer to front`}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      setActiveCategory(grp.id);
-                    }
-                  }}
-                >
-                  <div className="skills-bg-layer-header">
-                    <span className="skills-bg-layer-title">{grp.title}</span>
-                    <span className="skills-bg-layer-badge">{(grp.skills || []).length} skills</span>
-                    <span className="skills-bg-layer-action">Bring to front ↗</span>
-                  </div>
+                <div className="skills-bg-layer-header">
+                  <span className="skills-bg-layer-title">{grp.title}</span>
+                  <span className="skills-bg-layer-badge">{(grp.skills || []).length} skills</span>
+                  <span className="skills-bg-layer-action">
+                    <span>Bring to front</span>
+                    <Icon name="arrow-up-right" size={13} />
+                  </span>
                 </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Foreground Active Card: Fully Readable, Crisp, Front of Stack */}
+        <article
+          id={`skills-layer-${activeGroup.id}`}
+          className="skills-glass-card skills-foreground-card"
+          tabIndex={0}
+          aria-label={`${activeGroup.title} active skill layer`}
+        >
+          <header className="skills-glass-header">
+            <div className="skills-glass-header-text">
+              <div className="skills-glass-title-row">
+                <h3 className="skills-glass-title">{activeGroup.title}</h3>
+                <span className="skills-glass-badge">
+                  {(activeGroup.skills || []).length} Skills
+                </span>
+              </div>
+              {activeGroup.blurb && (
+                <p className="skills-glass-blurb">{activeGroup.blurb}</p>
+              )}
+            </div>
+          </header>
+
+          <div
+            className="skills-glass-capsules-grid"
+            role="list"
+            aria-label={`${activeGroup.title} competencies`}
+          >
+            {(activeGroup.skills || []).map((skill, sIdx) => {
+              const skillName = typeof skill === 'string' ? skill : skill.name;
+              return (
+                <span key={sIdx} className="skills-glass-capsule" role="listitem">
+                  {skillName}
+                </span>
               );
             })}
           </div>
 
-          {/* Foreground Active Card: Fully Readable, Crisp, Front of Stack */}
-          <article
-            id={`skills-layer-${activeGroup.id}`}
-            className="skills-glass-card skills-foreground-card"
-            tabIndex={0}
-            aria-label={`${activeGroup.title} active skill layer`}
-          >
-            <header className="skills-glass-header">
-              <div className="skills-glass-header-text">
-                <div className="skills-glass-title-row">
-                  <h3 className="skills-glass-title">{activeGroup.title}</h3>
-                  <span className="skills-glass-badge">
-                    {(activeGroup.skills || []).length} Verified Skills
-                  </span>
-                </div>
-                {activeGroup.blurb && (
-                  <p className="skills-glass-blurb">{activeGroup.blurb}</p>
-                )}
-              </div>
-            </header>
-
-            <div
-              className="skills-glass-capsules-grid"
-              role="list"
-              aria-label={`${activeGroup.title} competencies`}
-            >
-              {(activeGroup.skills || []).map((skill, sIdx) => {
-                const skillName = typeof skill === 'string' ? skill : skill.name;
-                return (
-                  <span key={sIdx} className="skills-glass-capsule" role="listitem">
-                    {skillName}
-                  </span>
-                );
-              })}
-            </div>
-
-            <footer className="skills-card-footer">
-              <span className="skills-card-footer-indicator">
-                Layer {categories.findIndex((c) => c.id === activeCategory) + 1} of {categories.length} &bull; Click any background layer or tab to switch
-              </span>
-            </footer>
-          </article>
-        </div>
-      )}
+          <footer className="skills-card-footer">
+            <span className="skills-card-footer-indicator">
+              Layer {categories.findIndex((c) => c.id === activeCategory) + 1} of {categories.length}
+            </span>
+          </footer>
+        </article>
+      </div>
     </div>
   );
 }
@@ -1938,16 +2082,10 @@ export function ReviewsSection({ items }) {
               aria-label={`${authorName} testimonial (${realIdx + 1} of ${N})`}
               aria-hidden={!isCenter}
             >
-              {/* Soft Ambient Glass Tint */}
-              <div className="card-glass-ambient" aria-hidden="true" />
-
-              {/* Soft Highlight Sheen */}
-              <div className="card-glass-sheen" aria-hidden="true" />
-
               {/* Card Foreground Content */}
               <div className="card-art-content">
                 <div className="card-top-bar">
-                  <span className="card-peer-badge">PEER ENDORSEMENT · {badgeNum}</span>
+                  <span className="card-peer-badge">#{badgeNum}</span>
                   <div className="card-quote-glyph" aria-hidden="true">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
@@ -2002,19 +2140,7 @@ export function ReviewsSection({ items }) {
             aria-label="Previous testimonial"
             onClick={handlePrev}
           >
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <polyline points="15 18 9 12 15 6" />
-            </svg>
+            <Icon name="arrow-left" size={18} />
           </button>
 
           <div className="reviews-dots" role="tablist" aria-label="Testimonial pagination">
@@ -2041,19 +2167,7 @@ export function ReviewsSection({ items }) {
             aria-label="Next testimonial"
             onClick={handleNext}
           >
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
+            <Icon name="arrow-right" size={18} />
           </button>
         </div>
       )}
@@ -2099,18 +2213,7 @@ export function FAQSection({ items = faqData }) {
                     <span className="faq-question-text">{item.question}</span>
                   </span>
                   <span className={`faq-chevron-box ${isOpen ? 'is-open' : ''}`} aria-hidden="true">
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2.2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <polyline points="6 9 12 15 18 9" />
-                    </svg>
+                    <Icon name="chevron-down" size={16} strokeWidth={2.2} />
                   </span>
                 </button>
               </h3>
@@ -2130,6 +2233,343 @@ export function FAQSection({ items = faqData }) {
             </div>
           );
         })}
+      </div>
+    </div>
+  );
+}
+
+// -------------------------------------------------------------
+// HIRE SUMAIYA (INQUIRY FORM & OPPORTUNITY CHANNELS)
+// Compact, accessible, validated hiring & collaboration inquiry
+// -------------------------------------------------------------
+export function HireSection() {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    inquiryType: 'Software Engineering',
+    message: '',
+  });
+
+  const [status, setStatus] = useState('idle'); // 'idle' | 'submitting' | 'success' | 'error'
+  const [errorMessage, setErrorMessage] = useState('');
+  const [copied, setCopied] = useState(false);
+
+  const inquiryTypes = [
+    'Software Engineering',
+    'UI/UX Design',
+    'SQA & Testing',
+    'Other / Collaboration',
+  ];
+
+  const handleCopyEmail = async () => {
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(site.email);
+      }
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2200);
+    } catch {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2200);
+    }
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (status === 'error') {
+      setStatus('idle');
+      setErrorMessage('');
+    }
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    const trimmedName = formData.name.trim();
+    const trimmedEmail = formData.email.trim();
+    const trimmedMessage = formData.message.trim();
+
+    if (!trimmedName || trimmedName.length < 2) {
+      setStatus('error');
+      setErrorMessage('Please enter your full name (minimum 2 characters).');
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!trimmedEmail || !emailRegex.test(trimmedEmail)) {
+      setStatus('error');
+      setErrorMessage('Please enter a valid email address.');
+      return;
+    }
+
+    if (!trimmedMessage || trimmedMessage.length < 10) {
+      setStatus('error');
+      setErrorMessage('Please provide inquiry details (minimum 10 characters).');
+      return;
+    }
+
+    setStatus('submitting');
+    setErrorMessage('');
+
+    // Smooth client feedback simulation
+    setTimeout(() => {
+      setStatus('success');
+    }, 550);
+  };
+
+  const handleReset = () => {
+    setFormData({
+      name: '',
+      email: '',
+      inquiryType: 'Software Engineering',
+      message: '',
+    });
+    setStatus('idle');
+    setErrorMessage('');
+  };
+
+  const mailtoUrl = `mailto:${site.email}?subject=${encodeURIComponent(
+    `[Opportunity: ${formData.inquiryType}] Inquiry from ${formData.name || 'Portfolio Visitor'}`
+  )}&body=${encodeURIComponent(
+    `Hello Sumaiya,\n\nName: ${formData.name}\nEmail: ${formData.email}\nInquiry Focus: ${formData.inquiryType}\n\nProject / Role Details:\n${formData.message}\n`
+  )}`;
+
+  return (
+    <div className="hire-section-container">
+      <div className="hire-grid">
+        {/* Left Side: Contact Context & Direct Channels Card */}
+        <aside className="hire-side-card" aria-label="Direct Contact Details">
+          <div className="hire-status-badge">
+            <span className="hire-status-dot" aria-hidden="true" />
+            <span>Open to Opportunities</span>
+          </div>
+
+          <p className="hire-side-intro">
+            Actively considering Software Engineering, UI/UX Design, and SQA positions, internships, and high-impact contract collaborations.
+          </p>
+
+          <div className="hire-meta-list">
+            {/* Email Channel */}
+            <div className="hire-meta-item">
+              <div className="hire-meta-icon" aria-hidden="true">
+                <Icon name="mail" size={16} />
+              </div>
+              <div className="hire-meta-content">
+                <span className="hire-meta-label">Direct Email</span>
+                <a href={`mailto:${site.email}`} className="hire-meta-val-link">
+                  {site.email}
+                </a>
+              </div>
+              <button
+                type="button"
+                className={`hire-copy-btn ${copied ? 'is-copied' : ''}`}
+                onClick={handleCopyEmail}
+                aria-label={copied ? 'Email copied to clipboard' : 'Copy email address'}
+                title={copied ? 'Copied!' : 'Copy email address'}
+              >
+                <Icon name={copied ? 'check' : 'copy'} size={13} />
+                <span>{copied ? 'Copied' : 'Copy'}</span>
+              </button>
+            </div>
+
+            {/* Location & Work Mode */}
+            <div className="hire-meta-item">
+              <div className="hire-meta-icon" aria-hidden="true">
+                <Icon name="map-pin" size={16} />
+              </div>
+              <div className="hire-meta-content">
+                <span className="hire-meta-label">Location &amp; Work Mode</span>
+                <span className="hire-meta-val">
+                  {site.location} · Remote / Hybrid Friendly
+                </span>
+              </div>
+            </div>
+
+            {/* Response Time Guarantee */}
+            <div className="hire-meta-item">
+              <div className="hire-meta-icon" aria-hidden="true">
+                <Icon name="sparkles" size={16} />
+              </div>
+              <div className="hire-meta-content">
+                <span className="hire-meta-label">Turnaround</span>
+                <span className="hire-meta-val">
+                  Typically responds within 24 hours
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Direct Resume Download Action */}
+          <div className="hire-side-footer">
+            <a
+              href={site.cvUrl}
+              download="Sumaiya_Jannat_Arpa_Resume.pdf"
+              className="hire-resume-link"
+              aria-label="Download Curriculum Vitae (PDF)"
+            >
+              <span>Download Full Resume</span>
+              <Icon name="arrow-down" size={13} />
+            </a>
+          </div>
+        </aside>
+
+        {/* Right Side: Clean Inquiry Form Card */}
+        <div className="hire-form-card" aria-label="Inquiry Form">
+          {status === 'success' ? (
+            <div className="hire-success-view" role="status" aria-live="polite">
+              <div className="hire-success-icon-wrap" aria-hidden="true">
+                <Icon name="check-circle" size={32} />
+              </div>
+              <h3 className="hire-success-title">Inquiry Sent Successfully</h3>
+              <p className="hire-success-desc">
+                Thank you, <strong>{formData.name}</strong>! Your inquiry regarding{' '}
+                <strong>{formData.inquiryType}</strong> has been logged. Sumaiya will review your message and reply to{' '}
+                <span className="hire-success-highlight">{formData.email}</span> shortly.
+              </p>
+
+              <div className="hire-success-actions">
+                <button
+                  type="button"
+                  className="hire-pill-action-btn"
+                  onClick={handleReset}
+                >
+                  <span>Send Another Message</span>
+                </button>
+                <a
+                  href={mailtoUrl}
+                  className="hire-pill-action-btn secondary"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <span>Open in Mail App</span>
+                  <Icon name="external-link" size={13} />
+                </a>
+              </div>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} noValidate className="hire-form">
+              <div className="hire-form-header">
+                <h3 className="hire-form-title">Send a Direct Inquiry</h3>
+                <p className="hire-form-subtitle">
+                  Fill in your details below and I'll get back to you promptly.
+                </p>
+              </div>
+
+              {/* Error feedback banner */}
+              {status === 'error' && errorMessage && (
+                <div className="hire-error-banner" role="alert">
+                  <Icon name="x" size={15} />
+                  <span>{errorMessage}</span>
+                </div>
+              )}
+
+              {/* Name & Email (2-col on desktop, stacked on mobile) */}
+              <div className="hire-fields-row">
+                <div className="hire-field-group">
+                  <label htmlFor="hire-name" className="hire-label">
+                    Full Name <span className="hire-req">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="hire-name"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    placeholder="e.g. Alex Morgan"
+                    autoComplete="name"
+                    required
+                    className="hire-input"
+                  />
+                </div>
+
+                <div className="hire-field-group">
+                  <label htmlFor="hire-email" className="hire-label">
+                    Email Address <span className="hire-req">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    id="hire-email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    placeholder="alex@company.com"
+                    autoComplete="email"
+                    required
+                    className="hire-input"
+                  />
+                </div>
+              </div>
+
+              {/* Inquiry Focus Chips */}
+              <div className="hire-field-group">
+                <label className="hire-label" id="hire-type-label">
+                  Inquiry Focus
+                </label>
+                <div
+                  className="hire-pills-row"
+                  role="radiogroup"
+                  aria-labelledby="hire-type-label"
+                >
+                  {inquiryTypes.map((type) => {
+                    const isActive = formData.inquiryType === type;
+                    return (
+                      <button
+                        key={type}
+                        type="button"
+                        role="radio"
+                        aria-checked={isActive}
+                        className={`hire-pill-btn ${isActive ? 'is-active' : ''}`}
+                        onClick={() =>
+                          setFormData((prev) => ({ ...prev, inquiryType: type }))
+                        }
+                      >
+                        {isActive && <Icon name="check" size={12} />}
+                        <span>{type}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Message Details */}
+              <div className="hire-field-group">
+                <label htmlFor="hire-message" className="hire-label">
+                  Project or Role Overview <span className="hire-req">*</span>
+                </label>
+                <textarea
+                  id="hire-message"
+                  name="message"
+                  rows={4}
+                  value={formData.message}
+                  onChange={handleChange}
+                  placeholder="Outline the role, scope, timeline, or key objectives..."
+                  required
+                  className="hire-textarea"
+                />
+              </div>
+
+              {/* Submit CTA */}
+              <button
+                type="submit"
+                className="hire-submit-btn"
+                disabled={status === 'submitting'}
+              >
+                {status === 'submitting' ? (
+                  <>
+                    <span className="hire-spinner" aria-hidden="true" />
+                    <span>Sending Inquiry...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Send Inquiry</span>
+                    <Icon name="send" size={14} />
+                  </>
+                )}
+              </button>
+            </form>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -2182,7 +2622,7 @@ export function AdditionalGitHubRepos({ className = '' }) {
     <div className={`additional-github-section ${className}`} aria-label="Additional GitHub Repositories">
       <div className="additional-github-header">
         <div className="additional-github-title-wrap">
-          <span className="sec-tag">LATEST REPOSITORIES // GITHUB</span>
+          <span className="sec-tag">Open Source Repositories</span>
           <h3 className="additional-github-title">Additional Code Repositories</h3>
           <p className="additional-github-lead">
             Public projects automatically synchronized from GitHub.
@@ -2196,10 +2636,9 @@ export function AdditionalGitHubRepos({ className = '' }) {
           className="github-profile-pill"
           aria-label={`Visit GitHub profile @${githubConfig.username}`}
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
-          </svg>
-          <span>github.com/{githubConfig.username} ↗</span>
+          <Icon name="github" size={16} />
+          <span>github.com/{githubConfig.username}</span>
+          <Icon name="arrow-up-right" size={13} />
         </a>
       </div>
 
@@ -2208,9 +2647,7 @@ export function AdditionalGitHubRepos({ className = '' }) {
           <article key={repo.id} className="github-repo-card">
             <div className="github-repo-card-top">
               <div className="github-repo-name-group">
-                <svg className="github-repo-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
-                </svg>
+                <Icon name="folder" size={16} className="github-repo-icon" />
                 <a
                   href={repo.html_url}
                   target="_blank"
@@ -2219,12 +2656,15 @@ export function AdditionalGitHubRepos({ className = '' }) {
                   title={`View ${repo.name} on GitHub`}
                 >
                   <span>{repo.name}</span>
-                  <span className="github-repo-arrow" aria-hidden="true"> ↗</span>
+                  <span className="github-repo-arrow" aria-hidden="true">
+                    <Icon name="arrow-up-right" size={13} />
+                  </span>
                 </a>
               </div>
               {repo.stargazers_count > 0 && (
                 <span className="github-repo-stars" title={`${repo.stargazers_count} stars`}>
-                  ★ {repo.stargazers_count}
+                  <Icon name="star" size={13} strokeWidth={2} style={{ fill: 'currentColor' }} />
+                  <span>{repo.stargazers_count}</span>
                 </span>
               )}
             </div>
@@ -2238,7 +2678,7 @@ export function AdditionalGitHubRepos({ className = '' }) {
                 <span className="github-repo-lang">
                   <span
                     className="lang-color-dot"
-                    style={{ backgroundColor: languageColors[repo.language] || '#2DD4BF' }}
+                    style={{ backgroundColor: languageColors[repo.language] || '#8EA5C8' }}
                     aria-hidden="true"
                   />
                   <span>{repo.language}</span>
@@ -2271,12 +2711,8 @@ export function FooterShowcaseDeck({ onNavigate, revealKey = 0 }) {
   return (
     <section id="quick-access" className="footer-showcase-deck" aria-label="Quick Access Navigation">
       <div className="site-wrapper deck-container">
-        <div className="deck-eyebrow-wrap" aria-hidden="true">
-          <span className="deck-eyebrow">Quick Access · Explore Portfolio</span>
-        </div>
-
         <div className="deck-cards-row" role="region" aria-label="Quick Access Navigation Cards">
-          {/* Card 2: Explore (Left) */}
+          {/* Card 1: Explore (Left, Amber / Slides theme) */}
           <div
             key={`card-explore-${revealKey}`}
             className={`deck-card deck-card-slides deck-card-explore ${revealKey > 0 ? 'is-revealing' : ''}`}
@@ -2288,10 +2724,72 @@ export function FooterShowcaseDeck({ onNavigate, revealKey = 0 }) {
           >
             <div className="deck-preview-well">
               <div className="deck-sheet-stack">
+                <div className="deck-sheet deck-sheet-back-2" aria-hidden="true" />
+                <div className="deck-sheet deck-sheet-back-1" aria-hidden="true" />
+                <div className="deck-sheet deck-sheet-front deck-sheet-slides-front">
+                  <div className="deck-slides-header">
+                    <span className="deck-slides-title">Skills &amp; Projects</span>
+                    <div className="deck-slides-divider" />
+                  </div>
+                  <div className="deck-slides-chart" aria-hidden="true">
+                    <div className="deck-chart-bar bar-purple" style={{ height: '62%' }} title="Skills" />
+                    <div className="deck-chart-bar bar-green" style={{ height: '78%' }} title="Projects" />
+                    <div className="deck-chart-bar bar-terracotta" style={{ height: '94%' }} title="Selected Work" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="deck-card-body">
+              <div className="deck-category-header">
+                <span className="deck-icon-badge badge-amber" aria-hidden="true">
+                  <Icon name="slides" size={15} strokeWidth={2.2} />
+                </span>
+                <h3 className="deck-category-title">Explore</h3>
+              </div>
+              <ul className="deck-items-list">
+                <li className="deck-list-item">
+                  <a
+                    href="#skills"
+                    onClick={(e) => handleClick(e, '#skills')}
+                    className="deck-item-link"
+                    aria-label="Scroll to Skills section"
+                  >
+                    <span className="deck-plus plus-amber" aria-hidden="true">+</span>
+                    <span>Skills</span>
+                  </a>
+                </li>
+                <li className="deck-list-item">
+                  <a
+                    href="#projects"
+                    onClick={(e) => handleClick(e, '#projects')}
+                    className="deck-item-link"
+                    aria-label="Scroll to Projects section"
+                  >
+                    <span className="deck-plus plus-amber" aria-hidden="true">+</span>
+                    <span>Projects</span>
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Card 2: About (Center, Blue / Docs theme) */}
+          <div
+            key={`card-about-${revealKey}`}
+            className={`deck-card deck-card-docs deck-card-about ${revealKey > 0 ? 'is-revealing' : ''}`}
+            style={{
+              '--deck-stagger-delay': '120ms',
+              '--deck-card-rot': 'rotate(0deg)',
+              '--deck-card-y': '-8px',
+            }}
+          >
+            <div className="deck-preview-well">
+              <div className="deck-sheet-stack">
                 <div className="deck-sheet deck-sheet-back-2 dark-stack" aria-hidden="true" />
                 <div className="deck-sheet deck-sheet-back-1 dark-stack" aria-hidden="true" />
                 <div className="deck-sheet deck-sheet-front deck-sheet-docs-front">
-                  <span className="deck-docs-title">Skills &amp; Projects</span>
+                  <span className="deck-docs-title">About Sumaiya</span>
                   <div className="deck-docs-lines" aria-hidden="true">
                     <div className="deck-line-bar bar-wide" />
                     <div className="deck-line-bar bar-medium" />
@@ -2307,77 +2805,7 @@ export function FooterShowcaseDeck({ onNavigate, revealKey = 0 }) {
             <div className="deck-card-body">
               <div className="deck-category-header">
                 <span className="deck-icon-badge badge-blue" aria-hidden="true">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10" />
-                    <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
-                  </svg>
-                </span>
-                <h3 className="deck-category-title">Explore</h3>
-              </div>
-              <ul className="deck-items-list">
-                <li className="deck-list-item">
-                  <a
-                    href="#skills"
-                    onClick={(e) => handleClick(e, '#skills')}
-                    className="deck-item-link"
-                    aria-label="Scroll to Skills section"
-                  >
-                    <span className="deck-plus plus-blue" aria-hidden="true">+</span>
-                    <span>Skills</span>
-                    <span className="deck-link-arrow" aria-hidden="true">↗</span>
-                  </a>
-                </li>
-                <li className="deck-list-item">
-                  <a
-                    href="#projects"
-                    onClick={(e) => handleClick(e, '#projects')}
-                    className="deck-item-link"
-                    aria-label="Scroll to Projects section"
-                  >
-                    <span className="deck-plus plus-blue" aria-hidden="true">+</span>
-                    <span>Projects</span>
-                    <span className="deck-link-arrow" aria-hidden="true">↗</span>
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          {/* Card 1: About (Center) */}
-          <div
-            key={`card-about-${revealKey}`}
-            className={`deck-card deck-card-docs deck-card-about ${revealKey > 0 ? 'is-revealing' : ''}`}
-            style={{
-              '--deck-stagger-delay': '120ms',
-              '--deck-card-rot': 'rotate(0deg)',
-              '--deck-card-y': '-8px',
-            }}
-          >
-            <div className="deck-preview-well">
-              <div className="deck-sheet-stack">
-                <div className="deck-sheet deck-sheet-back-2" aria-hidden="true" />
-                <div className="deck-sheet deck-sheet-back-1" aria-hidden="true" />
-                <div className="deck-sheet deck-sheet-front deck-sheet-slides-front">
-                  <div className="deck-slides-header">
-                    <span className="deck-slides-title">About Sumaiya</span>
-                    <div className="deck-slides-divider" />
-                  </div>
-                  <div className="deck-slides-chart" aria-hidden="true">
-                    <div className="deck-chart-bar bar-purple" style={{ height: '62%' }} title="Education" />
-                    <div className="deck-chart-bar bar-green" style={{ height: '78%' }} title="Experience" />
-                    <div className="deck-chart-bar bar-terracotta" style={{ height: '94%' }} title="Acknowledgements" />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="deck-card-body">
-              <div className="deck-category-header">
-                <span className="deck-icon-badge badge-amber" aria-hidden="true">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                    <circle cx="12" cy="7" r="4" />
-                  </svg>
+                  <Icon name="file-text" size={15} strokeWidth={2.2} />
                 </span>
                 <h3 className="deck-category-title">About</h3>
               </div>
@@ -2389,9 +2817,8 @@ export function FooterShowcaseDeck({ onNavigate, revealKey = 0 }) {
                     className="deck-item-link"
                     aria-label="Scroll to Education section"
                   >
-                    <span className="deck-plus plus-amber" aria-hidden="true">+</span>
+                    <span className="deck-plus plus-blue" aria-hidden="true">+</span>
                     <span>Education</span>
-                    <span className="deck-link-arrow" aria-hidden="true">↗</span>
                   </a>
                 </li>
                 <li className="deck-list-item">
@@ -2401,9 +2828,8 @@ export function FooterShowcaseDeck({ onNavigate, revealKey = 0 }) {
                     className="deck-item-link"
                     aria-label="Scroll to Experience section"
                   >
-                    <span className="deck-plus plus-amber" aria-hidden="true">+</span>
+                    <span className="deck-plus plus-blue" aria-hidden="true">+</span>
                     <span>Experience</span>
-                    <span className="deck-link-arrow" aria-hidden="true">↗</span>
                   </a>
                 </li>
                 <li className="deck-list-item">
@@ -2413,16 +2839,15 @@ export function FooterShowcaseDeck({ onNavigate, revealKey = 0 }) {
                     className="deck-item-link"
                     aria-label="Scroll to Acknowledgements section"
                   >
-                    <span className="deck-plus plus-amber" aria-hidden="true">+</span>
+                    <span className="deck-plus plus-blue" aria-hidden="true">+</span>
                     <span>Acknowledgements</span>
-                    <span className="deck-link-arrow" aria-hidden="true">↗</span>
                   </a>
                 </li>
               </ul>
             </div>
           </div>
 
-          {/* Card 3: Connect */}
+          {/* Card 3: Connect (Right, Purple / Design theme) */}
           <div
             key={`card-connect-${revealKey}`}
             className={`deck-card deck-card-design deck-card-connect ${revealKey > 0 ? 'is-revealing' : ''}`}
@@ -2461,9 +2886,7 @@ export function FooterShowcaseDeck({ onNavigate, revealKey = 0 }) {
             <div className="deck-card-body">
               <div className="deck-category-header">
                 <span className="deck-icon-badge badge-purple" aria-hidden="true">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
-                  </svg>
+                  <Icon name="palette" size={15} strokeWidth={2.2} />
                 </span>
                 <h3 className="deck-category-title">Connect</h3>
               </div>
@@ -2477,7 +2900,6 @@ export function FooterShowcaseDeck({ onNavigate, revealKey = 0 }) {
                   >
                     <span className="deck-plus plus-purple" aria-hidden="true">+</span>
                     <span>Reviews</span>
-                    <span className="deck-link-arrow" aria-hidden="true">↗</span>
                   </a>
                 </li>
                 <li className="deck-list-item">
@@ -2489,7 +2911,6 @@ export function FooterShowcaseDeck({ onNavigate, revealKey = 0 }) {
                   >
                     <span className="deck-plus plus-purple" aria-hidden="true">+</span>
                     <span>Questions (FAQ)</span>
-                    <span className="deck-link-arrow" aria-hidden="true">↗</span>
                   </a>
                 </li>
               </ul>
@@ -2619,9 +3040,17 @@ export function Layout({ children }) {
             ))}
           </nav>
 
-          {/* Right Side: Working Light/Dark Theme Toggle & Mobile Trigger */}
+          {/* Right Side: Action Cluster (Hire Me CTA & Mobile Trigger) */}
           <div className="bar-actions-cluster">
-            <ThemeToggle />
+            {/* Hire Me CTA Button */}
+            <button
+              type="button"
+              className="nav-hire-btn"
+              aria-label="Hire Me"
+              onClick={(e) => handleNavClick(e, '#hire')}
+            >
+              <span>Hire Me</span>
+            </button>
 
             {/* Mobile Menu Trigger */}
             <button
@@ -2647,7 +3076,6 @@ export function Layout({ children }) {
         <div className="mobile-drawer-inner">
           <div className="mobile-drawer-meta">
             <span className="drawer-title">Navigation</span>
-            <ThemeToggle />
           </div>
 
           <nav className="mobile-nav-links" aria-label="Mobile Navigation">
@@ -2659,7 +3087,9 @@ export function Layout({ children }) {
                 onClick={(e) => handleNavClick(e, item.to)}
               >
                 <span className="mob-label">{item.label}</span>
-                <span className="mob-arrow">↗</span>
+                <span className="mob-arrow">
+                  <Icon name="arrow-up-right" size={14} />
+                </span>
               </a>
             ))}
           </nav>
@@ -2671,7 +3101,8 @@ export function Layout({ children }) {
               className="btn solid w-full text-center"
               onClick={() => setNavOpen(false)}
             >
-              Download CV ↓
+              <span>Download CV</span>
+              <Icon name="arrow-down" size={14} />
             </a>
           </div>
         </div>
@@ -2692,7 +3123,6 @@ export function Layout({ children }) {
             {/* Left column: Connect & Follow */}
             <div className="footer-col footer-socials-col">
               <h3 className="footer-col-title">Connect &amp; <span className="ref-about-heading-bold">Follow</span></h3>
-              <span className="footer-col-eyebrow">Social Presence</span>
 
               <div className="footer-social-icons-cluster" role="list" aria-label="Social profiles">
                 {footerSocials.map((s) => (
@@ -2744,10 +3174,7 @@ export function Layout({ children }) {
                   aria-label="Explore quick access links"
                 >
                   <span>Explore!</span>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <line x1="7" y1="17" x2="17" y2="7" />
-                    <polyline points="7 7 17 7 17 17" />
-                  </svg>
+                  <Icon name="arrow-up-right" size={14} strokeWidth={2.4} />
                 </a>
               </div>
 
@@ -2755,13 +3182,13 @@ export function Layout({ children }) {
                 <h3 className="footer-col-title">Get in <span className="ref-about-heading-bold">Touch</span></h3>
                 <div className="footer-contact-items">
                   <div className="footer-contact-row">
-                    <span className="contact-row-label">Email:</span>
+                    <Icon name="mail" size={15} style={{ opacity: 0.7 }} />
                     <a href={`mailto:${site.email}`} className="footer-contact-action">
                       {site.email}
                     </a>
                   </div>
                   <div className="footer-contact-row">
-                    <span className="contact-row-label">Location:</span>
+                    <Icon name="map-pin" size={15} style={{ opacity: 0.7 }} />
                     <span className="footer-contact-text">
                       {site.location}
                     </span>
@@ -2785,7 +3212,7 @@ export function Layout({ children }) {
                 aria-label="Download Curriculum Vitae (PDF)"
               >
                 <span>Download CV</span>
-                <span aria-hidden="true"> ↓</span>
+                <Icon name="arrow-down" size={13} />
               </a>
             </div>
           </div>
