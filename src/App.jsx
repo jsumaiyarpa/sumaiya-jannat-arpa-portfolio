@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { Layout } from './components.jsx';
 import {
   Home,
@@ -127,14 +127,14 @@ export default function App() {
                   <Route path="/" element={<Home />} />
                   <Route path="/work" element={<Work />} />
                   <Route path="/work/:slug" element={<Project />} />
-                  <Route path="/about" element={<About />} />
-                  <Route path="/skills" element={<Skills />} />
-                  <Route path="/experience" element={<Experience />} />
-                  <Route path="/education" element={<Education />} />
-                  <Route path="/achievements" element={<Achievements />} />
+                  <Route path="/about" element={<Navigate to={{ pathname: '/', hash: '#about' }} replace state={{ scrollTo: 'about' }} />} />
+                  <Route path="/skills" element={<Navigate to={{ pathname: '/', hash: '#skills' }} replace state={{ scrollTo: 'skills' }} />} />
+                  <Route path="/experience" element={<Navigate to={{ pathname: '/', hash: '#experience' }} replace state={{ scrollTo: 'experience' }} />} />
+                  <Route path="/education" element={<Navigate to={{ pathname: '/', hash: '#education' }} replace state={{ scrollTo: 'education' }} />} />
+                  <Route path="/achievements" element={<Navigate to={{ pathname: '/', hash: '#education' }} replace state={{ scrollTo: 'education' }} />} />
                   <Route path="/gallery" element={<Gallery />} />
                   <Route path="/resume" element={<Resume />} />
-                  <Route path="/contact" element={<Contact />} />
+                  <Route path="/contact" element={<Navigate to={{ pathname: '/', hash: '#contact' }} replace state={{ scrollTo: 'contact' }} />} />
                   <Route path="*" element={<Home />} />
                 </Routes>
               </Layout>
