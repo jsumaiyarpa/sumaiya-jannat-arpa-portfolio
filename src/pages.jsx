@@ -21,7 +21,7 @@ import {
   SkillsOverview,
   ReviewsSection,
   FAQSection,
-  HireSection,
+  FeaturedImageSlideshow,
   ProjectCard,
   Timeline,
   Socials,
@@ -502,7 +502,7 @@ export function Home() {
   return (
     <>
       {/* 01. HERO / HOME SECTION — Faithfully Recreated from User's Designed Cover Image Reference */}
-      <section className="hero-wireframe-section hero-cover-section" aria-label="Introduction">
+      <section id="hero" className="hero-wireframe-section hero-cover-section" aria-label="Introduction">
         <div className="site-wrapper hero-wireframe-inner hero-cover-inner">
 
           {/* Layered Composition: Name "Sumaiya" in large bold solid typography behind center portrait */}
@@ -530,7 +530,7 @@ export function Home() {
           {/* Three Pill Action Buttons matching cover reference */}
           <div className="hero-cover-actions" role="group" aria-label="Hero actions">
             <a href="#projects" className="btn-cover-pill btn-cover-pill-secondary">
-              <span>Explore My Works</span>
+              <span>Explore My Work</span>
               <Icon name="arrow-up-right" size={15} />
             </a>
 
@@ -572,9 +572,11 @@ export function Home() {
             </div>
 
             <div className="ref-about-bio-col">
-              <h2 className="ref-about-heading">
-                About <span className="ref-about-heading-bold">Sumaiya</span>
-              </h2>
+              <div className="ref-about-heading-row">
+                <h2 className="ref-about-heading">
+                  About <span className="ref-about-heading-bold">Sumaiya</span>
+                </h2>
+              </div>
 
               <blockquote className="ref-about-quote">
                 <span className="ref-about-quote-mark" aria-hidden="true">“</span>
@@ -702,6 +704,9 @@ export function Home() {
                 )}
               </div>
             </article>
+
+            {/* Featured Images Slideshow — Directly above Experience & Leadership */}
+            <FeaturedImageSlideshow />
 
             {/* 02. Experience & Volunteering — Ascending Staircase Experience Layout */}
             <article
@@ -881,7 +886,7 @@ export function Home() {
                       {[0, 1, 2].map((offset) => {
                         const item =
                           credentialItems[
-                            (activeCredentialIndex + offset) % credentialItems.length
+                          (activeCredentialIndex + offset) % credentialItems.length
                           ];
                         return (
                           <article
@@ -1010,8 +1015,8 @@ export function Home() {
                               key={`credential-dot-${index}`}
                               type="button"
                               className={`credential-dot ${index === activeCredentialIndex
-                                  ? "is-active"
-                                  : ""
+                                ? "is-active"
+                                : ""
                                 }`}
                               aria-label={`Show certificate ${index + 1}: ${item.title}`}
                               aria-current={
@@ -1246,18 +1251,6 @@ export function Home() {
           />
 
           <FAQSection />
-        </div>
-      </section>
-
-      {/* 08. HIRE SUMAIYA SECTION */}
-      <section id="hire" className="page-section section-hire">
-        <span id="hire-sumaiya" className="section-anchor-hidden" aria-hidden="true" />
-        <div className="site-wrapper">
-          <SectionHeader
-            title={<>Hire <span className="ref-about-heading-bold">Sumaiya</span></>}
-          />
-
-          <HireSection />
         </div>
       </section>
     </>

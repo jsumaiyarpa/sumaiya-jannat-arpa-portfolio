@@ -611,7 +611,7 @@ export function GlassmorphicCardStack() {
               onKeyDown={(e) => handleKeyDown(e, idx)}
             >
               <div className="glass-sheen" aria-hidden="true" />
-              
+
               <div className="glass-card-header">
                 <div className="glass-card-lead-badge">
                   <span className="glass-status-dot" aria-hidden="true" />
@@ -1211,16 +1211,16 @@ export function NavAvatar({ src = '/images/portrait.jpg', onClick }) {
   }, [src]);
 
   return (
-    <button
-      type="button"
+    <a
+      href="#hero"
       className="brand-avatar-btn"
       onClick={onClick}
-      aria-label="Sumaiya Jannat Arpa — Return to top of page"
-      title="Sumaiya Jannat Arpa — Return to top"
+      aria-label="Home — Return to top of page"
+      title="Home"
     >
       <div className="brand-avatar-circle">
         {hasImg ? (
-          <img src={src} alt="Sumaiya Jannat Arpa" className="brand-avatar-img" />
+          <img src={src} alt="Sumaiya Jannat Arpa — Home" className="brand-avatar-img" />
         ) : (
           <div className="brand-avatar-fallback" aria-hidden="true">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
@@ -1230,7 +1230,7 @@ export function NavAvatar({ src = '/images/portrait.jpg', onClick }) {
           </div>
         )}
       </div>
-    </button>
+    </a>
   );
 }
 
@@ -1245,7 +1245,7 @@ function GitHubIcon({ size = 16, className = '' }) {
 function BehanceIcon({ size = 16, className = '' }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
-      <path d="M7.785 14.502h-3.41v-1.748h3.364c.594 0 1.04.103 1.337.311.297.208.446.526.446.953 0 .426-.149.744-.446.952-.297.208-.743.312-1.337.312zm-.31-3.238H4.375V9.69h3.048c.531 0 .937.094 1.218.281.281.188.422.469.422.844 0 .375-.141.656-.422.844-.281.187-.687.281-1.218.281zm5.176 1.637c-.015-1.24.281-2.229.89-2.969.609-.739 1.484-1.109 2.625-1.109 1.094 0 1.943.359 2.547 1.078.604.719.906 1.693.906 2.922 0 .094 0 .219-.015.375h-5.063c.031.781.286 1.375.766 1.781.479.406 1.094.609 1.844.609.672 0 1.25-.156 1.734-.469.484-.312.828-.75 1.031-1.312l1.641.656c-.344.891-.906 1.602-1.688 2.133-.781.531-1.703.797-2.766.797-1.328 0-2.391-.422-3.188-1.266-.796-.844-1.203-1.922-1.22-3.234l-.008.007zm3.484-2.5c-.562 0-1.026.167-1.391.5-.365.333-.578.802-.641 1.406h3.984c-.031-.609-.234-1.083-.609-1.422-.375-.338-.828-.484-1.344-.484zM2.438 7.375h5.531c1.234 0 2.219.297 2.953.891.734.594 1.102 1.406 1.102 2.438 0 .688-.172 1.281-.516 1.781-.344.5-.828.875-1.453 1.125.828.25 1.453.688 1.875 1.312.422.625.633 1.375.633 2.25 0 1.156-.406 2.078-1.219 2.766-.812.688-1.891 1.031-3.234 1.031H2.438V7.375zm12.469-.938h5.344v1.312h-5.344V6.437z"/>
+      <path d="M7.785 14.502h-3.41v-1.748h3.364c.594 0 1.04.103 1.337.311.297.208.446.526.446.953 0 .426-.149.744-.446.952-.297.208-.743.312-1.337.312zm-.31-3.238H4.375V9.69h3.048c.531 0 .937.094 1.218.281.281.188.422.469.422.844 0 .375-.141.656-.422.844-.281.187-.687.281-1.218.281zm5.176 1.637c-.015-1.24.281-2.229.89-2.969.609-.739 1.484-1.109 2.625-1.109 1.094 0 1.943.359 2.547 1.078.604.719.906 1.693.906 2.922 0 .094 0 .219-.015.375h-5.063c.031.781.286 1.375.766 1.781.479.406 1.094.609 1.844.609.672 0 1.25-.156 1.734-.469.484-.312.828-.75 1.031-1.312l1.641.656c-.344.891-.906 1.602-1.688 2.133-.781.531-1.703.797-2.766.797-1.328 0-2.391-.422-3.188-1.266-.796-.844-1.203-1.922-1.22-3.234l-.008.007zm3.484-2.5c-.562 0-1.026.167-1.391.5-.365.333-.578.802-.641 1.406h3.984c-.031-.609-.234-1.083-.609-1.422-.375-.338-.828-.484-1.344-.484zM2.438 7.375h5.531c1.234 0 2.219.297 2.953.891.734.594 1.102 1.406 1.102 2.438 0 .688-.172 1.281-.516 1.781-.344.5-.828.875-1.453 1.125.828.25 1.453.688 1.875 1.312.422.625.633 1.375.633 2.25 0 1.156-.406 2.078-1.219 2.766-.812.688-1.891 1.031-3.234 1.031H2.438V7.375zm12.469-.938h5.344v1.312h-5.344V6.437z" />
     </svg>
   );
 }
@@ -2176,8 +2176,10 @@ export function ReviewsSection({ items }) {
 }
 
 // -------------------------------------------------------------
-// GET TO KNOW SUMAIYA (FAQ ACCORDION)
-// Single-open accessible accordion with smooth expand/collapse
+// GET TO KNOW SUMAIYA (TWO-COLUMN EDITORIAL FAQ)
+// Left: Complete FAQ questions & answers
+// Right: Standalone portrait image (/images/profile_3.png) matching
+// the height of the questions beside it, styled cleanly like the About section.
 // -------------------------------------------------------------
 export function FAQSection({ items = faqData }) {
   const [openIndex, setOpenIndex] = useState(null);
@@ -2187,394 +2189,145 @@ export function FAQSection({ items = faqData }) {
   };
 
   return (
-    <div className="faq-accordion-container">
-      <div className="faq-accordion-list" role="presentation">
-        {items.map((item, index) => {
-          const isOpen = openIndex === index;
-          const buttonId = `faq-trigger-${index}`;
-          const contentId = `faq-content-${index}`;
+    <div className="faq-editorial-grid">
+      {/* Left Column: Existing FAQ Questions & Answers Accordion */}
+      <div className="faq-accordion-container">
+        <div className="faq-accordion-list" role="presentation">
+          {items.map((item, index) => {
+            const isOpen = openIndex === index;
+            const buttonId = `faq-trigger-${index}`;
+            const contentId = `faq-content-${index}`;
 
-          return (
-            <div
-              key={item.id || index}
-              className={`faq-accordion-item ${isOpen ? 'is-open' : ''}`}
-            >
-              <h3 className="faq-item-heading">
-                <button
-                  type="button"
-                  id={buttonId}
-                  className="faq-trigger-btn"
-                  aria-expanded={isOpen}
-                  aria-controls={contentId}
-                  onClick={() => toggleItem(index)}
-                >
-                  <span className="faq-trigger-left">
-                    <span className="faq-question-num">0{index + 1}.</span>
-                    <span className="faq-question-text">{item.question}</span>
-                  </span>
-                  <span className={`faq-chevron-box ${isOpen ? 'is-open' : ''}`} aria-hidden="true">
-                    <Icon name="chevron-down" size={16} strokeWidth={2.2} />
-                  </span>
-                </button>
-              </h3>
-
+            return (
               <div
-                id={contentId}
-                role="region"
-                aria-labelledby={buttonId}
-                className={`faq-collapse-body ${isOpen ? 'is-open' : ''}`}
+                key={item.id || index}
+                className={`faq-accordion-item ${isOpen ? 'is-open' : ''}`}
               >
-                <div className="faq-answer-inner">
-                  <p className="faq-answer-text">
-                    {item.answer}
-                  </p>
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
+                <h3 className="faq-item-heading">
+                  <button
+                    type="button"
+                    id={buttonId}
+                    className="faq-trigger-btn"
+                    aria-expanded={isOpen}
+                    aria-controls={contentId}
+                    onClick={() => toggleItem(index)}
+                  >
+                    <span className="faq-trigger-left">
+                      <span className="faq-question-num">0{index + 1}.</span>
+                      <span className="faq-question-text">{item.question}</span>
+                    </span>
+                    <span className={`faq-chevron-box ${isOpen ? 'is-open' : ''}`} aria-hidden="true">
+                      <Icon name="chevron-down" size={16} strokeWidth={2.2} />
+                    </span>
+                  </button>
+                </h3>
 
-// -------------------------------------------------------------
-// HIRE SUMAIYA (INQUIRY FORM & OPPORTUNITY CHANNELS)
-// Compact, accessible, validated hiring & collaboration inquiry
-// -------------------------------------------------------------
-export function HireSection() {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    inquiryType: 'Software Engineering',
-    message: '',
-  });
-
-  const [status, setStatus] = useState('idle'); // 'idle' | 'submitting' | 'success' | 'error'
-  const [errorMessage, setErrorMessage] = useState('');
-  const [copied, setCopied] = useState(false);
-
-  const inquiryTypes = [
-    'Software Engineering',
-    'UI/UX Design',
-    'SQA & Testing',
-    'Other / Collaboration',
-  ];
-
-  const handleCopyEmail = async () => {
-    try {
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(site.email);
-      }
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2200);
-    } catch {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2200);
-    }
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    if (status === 'error') {
-      setStatus('idle');
-      setErrorMessage('');
-    }
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    const trimmedName = formData.name.trim();
-    const trimmedEmail = formData.email.trim();
-    const trimmedMessage = formData.message.trim();
-
-    if (!trimmedName || trimmedName.length < 2) {
-      setStatus('error');
-      setErrorMessage('Please enter your full name (minimum 2 characters).');
-      return;
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!trimmedEmail || !emailRegex.test(trimmedEmail)) {
-      setStatus('error');
-      setErrorMessage('Please enter a valid email address.');
-      return;
-    }
-
-    if (!trimmedMessage || trimmedMessage.length < 10) {
-      setStatus('error');
-      setErrorMessage('Please provide inquiry details (minimum 10 characters).');
-      return;
-    }
-
-    setStatus('submitting');
-    setErrorMessage('');
-
-    // Smooth client feedback simulation
-    setTimeout(() => {
-      setStatus('success');
-    }, 550);
-  };
-
-  const handleReset = () => {
-    setFormData({
-      name: '',
-      email: '',
-      inquiryType: 'Software Engineering',
-      message: '',
-    });
-    setStatus('idle');
-    setErrorMessage('');
-  };
-
-  const mailtoUrl = `mailto:${site.email}?subject=${encodeURIComponent(
-    `[Opportunity: ${formData.inquiryType}] Inquiry from ${formData.name || 'Portfolio Visitor'}`
-  )}&body=${encodeURIComponent(
-    `Hello Sumaiya,\n\nName: ${formData.name}\nEmail: ${formData.email}\nInquiry Focus: ${formData.inquiryType}\n\nProject / Role Details:\n${formData.message}\n`
-  )}`;
-
-  return (
-    <div className="hire-section-container">
-      <div className="hire-grid">
-        {/* Left Side: Contact Context & Direct Channels Card */}
-        <aside className="hire-side-card" aria-label="Direct Contact Details">
-          <div className="hire-status-badge">
-            <span className="hire-status-dot" aria-hidden="true" />
-            <span>Open to Opportunities</span>
-          </div>
-
-          <p className="hire-side-intro">
-            Actively considering Software Engineering, UI/UX Design, and SQA positions, internships, and high-impact contract collaborations.
-          </p>
-
-          <div className="hire-meta-list">
-            {/* Email Channel */}
-            <div className="hire-meta-item">
-              <div className="hire-meta-icon" aria-hidden="true">
-                <Icon name="mail" size={16} />
-              </div>
-              <div className="hire-meta-content">
-                <span className="hire-meta-label">Direct Email</span>
-                <a href={`mailto:${site.email}`} className="hire-meta-val-link">
-                  {site.email}
-                </a>
-              </div>
-              <button
-                type="button"
-                className={`hire-copy-btn ${copied ? 'is-copied' : ''}`}
-                onClick={handleCopyEmail}
-                aria-label={copied ? 'Email copied to clipboard' : 'Copy email address'}
-                title={copied ? 'Copied!' : 'Copy email address'}
-              >
-                <Icon name={copied ? 'check' : 'copy'} size={13} />
-                <span>{copied ? 'Copied' : 'Copy'}</span>
-              </button>
-            </div>
-
-            {/* Location & Work Mode */}
-            <div className="hire-meta-item">
-              <div className="hire-meta-icon" aria-hidden="true">
-                <Icon name="map-pin" size={16} />
-              </div>
-              <div className="hire-meta-content">
-                <span className="hire-meta-label">Location &amp; Work Mode</span>
-                <span className="hire-meta-val">
-                  {site.location} · Remote / Hybrid Friendly
-                </span>
-              </div>
-            </div>
-
-            {/* Response Time Guarantee */}
-            <div className="hire-meta-item">
-              <div className="hire-meta-icon" aria-hidden="true">
-                <Icon name="sparkles" size={16} />
-              </div>
-              <div className="hire-meta-content">
-                <span className="hire-meta-label">Turnaround</span>
-                <span className="hire-meta-val">
-                  Typically responds within 24 hours
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Direct Resume Download Action */}
-          <div className="hire-side-footer">
-            <a
-              href={site.cvUrl}
-              download="Sumaiya_Jannat_Arpa_Resume.pdf"
-              className="hire-resume-link"
-              aria-label="Download Curriculum Vitae (PDF)"
-            >
-              <span>Download Full Resume</span>
-              <Icon name="arrow-down" size={13} />
-            </a>
-          </div>
-        </aside>
-
-        {/* Right Side: Clean Inquiry Form Card */}
-        <div className="hire-form-card" aria-label="Inquiry Form">
-          {status === 'success' ? (
-            <div className="hire-success-view" role="status" aria-live="polite">
-              <div className="hire-success-icon-wrap" aria-hidden="true">
-                <Icon name="check-circle" size={32} />
-              </div>
-              <h3 className="hire-success-title">Inquiry Sent Successfully</h3>
-              <p className="hire-success-desc">
-                Thank you, <strong>{formData.name}</strong>! Your inquiry regarding{' '}
-                <strong>{formData.inquiryType}</strong> has been logged. Sumaiya will review your message and reply to{' '}
-                <span className="hire-success-highlight">{formData.email}</span> shortly.
-              </p>
-
-              <div className="hire-success-actions">
-                <button
-                  type="button"
-                  className="hire-pill-action-btn"
-                  onClick={handleReset}
-                >
-                  <span>Send Another Message</span>
-                </button>
-                <a
-                  href={mailtoUrl}
-                  className="hire-pill-action-btn secondary"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <span>Open in Mail App</span>
-                  <Icon name="external-link" size={13} />
-                </a>
-              </div>
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit} noValidate className="hire-form">
-              <div className="hire-form-header">
-                <h3 className="hire-form-title">Send a Direct Inquiry</h3>
-                <p className="hire-form-subtitle">
-                  Fill in your details below and I'll get back to you promptly.
-                </p>
-              </div>
-
-              {/* Error feedback banner */}
-              {status === 'error' && errorMessage && (
-                <div className="hire-error-banner" role="alert">
-                  <Icon name="x" size={15} />
-                  <span>{errorMessage}</span>
-                </div>
-              )}
-
-              {/* Name & Email (2-col on desktop, stacked on mobile) */}
-              <div className="hire-fields-row">
-                <div className="hire-field-group">
-                  <label htmlFor="hire-name" className="hire-label">
-                    Full Name <span className="hire-req">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    id="hire-name"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    placeholder="e.g. Alex Morgan"
-                    autoComplete="name"
-                    required
-                    className="hire-input"
-                  />
-                </div>
-
-                <div className="hire-field-group">
-                  <label htmlFor="hire-email" className="hire-label">
-                    Email Address <span className="hire-req">*</span>
-                  </label>
-                  <input
-                    type="email"
-                    id="hire-email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    placeholder="alex@company.com"
-                    autoComplete="email"
-                    required
-                    className="hire-input"
-                  />
-                </div>
-              </div>
-
-              {/* Inquiry Focus Chips */}
-              <div className="hire-field-group">
-                <label className="hire-label" id="hire-type-label">
-                  Inquiry Focus
-                </label>
                 <div
-                  className="hire-pills-row"
-                  role="radiogroup"
-                  aria-labelledby="hire-type-label"
+                  id={contentId}
+                  role="region"
+                  aria-labelledby={buttonId}
+                  className={`faq-collapse-body ${isOpen ? 'is-open' : ''}`}
                 >
-                  {inquiryTypes.map((type) => {
-                    const isActive = formData.inquiryType === type;
-                    return (
-                      <button
-                        key={type}
-                        type="button"
-                        role="radio"
-                        aria-checked={isActive}
-                        className={`hire-pill-btn ${isActive ? 'is-active' : ''}`}
-                        onClick={() =>
-                          setFormData((prev) => ({ ...prev, inquiryType: type }))
-                        }
-                      >
-                        {isActive && <Icon name="check" size={12} />}
-                        <span>{type}</span>
-                      </button>
-                    );
-                  })}
+                  <div className="faq-answer-inner">
+                    <p className="faq-answer-text">
+                      {item.answer}
+                    </p>
+                  </div>
                 </div>
               </div>
-
-              {/* Message Details */}
-              <div className="hire-field-group">
-                <label htmlFor="hire-message" className="hire-label">
-                  Project or Role Overview <span className="hire-req">*</span>
-                </label>
-                <textarea
-                  id="hire-message"
-                  name="message"
-                  rows={4}
-                  value={formData.message}
-                  onChange={handleChange}
-                  placeholder="Outline the role, scope, timeline, or key objectives..."
-                  required
-                  className="hire-textarea"
-                />
-              </div>
-
-              {/* Submit CTA */}
-              <button
-                type="submit"
-                className="hire-submit-btn"
-                disabled={status === 'submitting'}
-              >
-                {status === 'submitting' ? (
-                  <>
-                    <span className="hire-spinner" aria-hidden="true" />
-                    <span>Sending Inquiry...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>Send Inquiry</span>
-                    <Icon name="send" size={14} />
-                  </>
-                )}
-              </button>
-            </form>
-          )}
+            );
+          })}
         </div>
       </div>
+
+      {/* Right Column: Standalone Portrait Image (Profile 3) */}
+      <div className="faq-portrait-col">
+        <img
+          src="/images/profile_3.png"
+          alt="Sumaiya Jannat Arpa"
+          className="faq-standalone-portrait-img"
+          loading="lazy"
+          decoding="async"
+        />
+      </div>
     </div>
   );
 }
 
+// -------------------------------------------------------------
+// FEATURED IMAGES SLIDESHOW
+// Visual automatic slideshow positioned directly above Experience & Leadership.
+// Autoplays continuously with smooth, subtle cross-fade transitions.
+// Preserves each image's authentic aspect ratio and uncropped dimensions.
+// No manual controls, pagination, arrows, or dots.
+// -------------------------------------------------------------
+const BASE_FEATURED_IMAGES = [
+  '/images/featured/featured_1.jpg',
+  '/images/featured/featured_2.jpg',
+  '/images/featured/featured_3.jpg',
+  '/images/featured/featured_4.jpg',
+  '/images/featured/featured_5.jpg',
+];
+
+export function FeaturedImageSlideshow() {
+  const [images, setImages] = useState(BASE_FEATURED_IMAGES);
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  // If featured_6.jpg exists, automatically include it in the loop
+  useEffect(() => {
+    const testImg = new Image();
+    testImg.onload = () => {
+      setImages((prev) =>
+        prev.includes('/images/featured/featured_6.jpg')
+          ? prev
+          : [...prev, '/images/featured/featured_6.jpg']
+      );
+    };
+    testImg.src = '/images/featured/featured_6.jpg';
+  }, []);
+
+  // Automatic continuous loop with smooth timing
+  useEffect(() => {
+    if (images.length <= 1) return;
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % images.length);
+    }, 4200);
+    return () => clearInterval(interval);
+  }, [images.length]);
+
+  return (
+    <article
+      id="featured-slideshow"
+      className="ref-panel-card ref-panel-card-featured visual-stack-panel"
+      aria-label="Featured highlights visual slideshow"
+    >
+      <span id="featured" className="section-anchor-hidden" aria-hidden="true" />
+      <div className="featured-slideshow-container">
+        <div className="featured-viewport" role="region" aria-label="Automatic photo slideshow">
+          {images.map((src, idx) => {
+            const isActive = idx === currentIndex;
+            return (
+              <div
+                key={src}
+                className={`featured-slide ${isActive ? 'is-active' : ''}`}
+                aria-hidden={!isActive}
+              >
+                {/* Completely uncropped full image retaining natural proportions */}
+                <img
+                  src={src}
+                  alt={`Featured milestone ${idx + 1}`}
+                  className="featured-slide-img"
+                  loading={idx === 0 ? 'eager' : 'lazy'}
+                  decoding="async"
+                />
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </article>
+  );
+}
 
 // -------------------------------------------------------------
 // LIVE GITHUB REPOSITORIES (ADDITIONAL / OPEN-SOURCE FEED)
@@ -2947,13 +2700,30 @@ export function Layout({ children }) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [navOpen]);
 
+  // Lock background scroll when mobile navigation drawer is open
+  useEffect(() => {
+    document.body.style.overflow = navOpen ? 'hidden' : '';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [navOpen]);
+
   const handleAvatarClick = (e) => {
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
+    setNavOpen(false);
     if (pathname !== '/') {
       navigate('/');
       setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50);
     } else {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      const heroEl = document.getElementById('hero') || document.querySelector('.hero-cover-section');
+      if (heroEl) {
+        const navOffset = 80;
+        const elementPosition = heroEl.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - navOffset;
+        window.scrollTo({ top: Math.max(0, offsetPosition), behavior: 'smooth' });
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
     }
   };
 
@@ -2963,15 +2733,26 @@ export function Layout({ children }) {
       setNavOpen(false);
       const targetId = to.slice(1);
       const scrollToTarget = () => {
-        const el = document.getElementById(targetId);
+        let el = document.getElementById(targetId);
+        // Special target aliases
+        if (targetId === 'hero' && !el) {
+          el = document.querySelector('.hero-cover-section') || document.getElementById('main-content');
+        } else if (targetId === 'contact' && !el) {
+          el = document.getElementById('get-in-touch') || document.querySelector('.footer-top-grid') || document.querySelector('.footer-touch-col');
+        } else if (targetId === 'connect' && !el) {
+          el = document.querySelector('.footer-connect-tier');
+        }
+
         if (el) {
           const navOffset = 80;
           const elementPosition = el.getBoundingClientRect().top;
           const offsetPosition = elementPosition + window.pageYOffset - navOffset;
           window.scrollTo({
-            top: offsetPosition,
+            top: Math.max(0, offsetPosition),
             behavior: 'smooth'
           });
+        } else if (targetId === 'hero' || targetId === 'top') {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
         }
       };
 
@@ -2983,6 +2764,75 @@ export function Layout({ children }) {
       }
     }
   };
+
+  // Direct Inquiry Form state & handler for footer
+  const [inquiryData, setInquiryData] = useState({
+    name: '',
+    email: '',
+    inquiryFocus: 'Software Engineering',
+    message: '',
+  });
+  const [inquiryStatus, setInquiryStatus] = useState('idle'); // 'idle' | 'submitting' | 'success' | 'error'
+  const [inquiryError, setInquiryError] = useState('');
+
+  const handleInquiryChange = (e) => {
+    const { name, value } = e.target;
+    setInquiryData((prev) => ({ ...prev, [name]: value }));
+    if (inquiryStatus === 'error') {
+      setInquiryStatus('idle');
+      setInquiryError('');
+    }
+  };
+
+  const handleInquirySubmit = (e) => {
+    e.preventDefault();
+    const trimmedName = inquiryData.name.trim();
+    const trimmedEmail = inquiryData.email.trim();
+    const trimmedMessage = inquiryData.message.trim();
+
+    if (!trimmedName || trimmedName.length < 2) {
+      setInquiryStatus('error');
+      setInquiryError('Please enter your full name (minimum 2 characters).');
+      return;
+    }
+
+    const emailRegex = /^[^s@]+@[^s@]+.[^s@]+$/;
+    if (!trimmedEmail || !emailRegex.test(trimmedEmail)) {
+      setInquiryStatus('error');
+      setInquiryError('Please enter a valid email address.');
+      return;
+    }
+
+    if (!trimmedMessage || trimmedMessage.length < 10) {
+      setInquiryStatus('error');
+      setInquiryError('Please enter a message (minimum 10 characters).');
+      return;
+    }
+
+    setInquiryStatus('submitting');
+    setInquiryError('');
+
+    setTimeout(() => {
+      setInquiryStatus('success');
+    }, 450);
+  };
+
+  const handleInquiryReset = () => {
+    setInquiryData({
+      name: '',
+      email: '',
+      inquiryFocus: 'Software Engineering',
+      message: '',
+    });
+    setInquiryStatus('idle');
+    setInquiryError('');
+  };
+
+  const mailtoInquiryUrl = `mailto:${site.email}?subject=${encodeURIComponent(
+    `[Inquiry: ${inquiryData.inquiryFocus}] From ${inquiryData.name || 'Portfolio Visitor'}`
+  )}&body=${encodeURIComponent(
+    `Hello Sumaiya,\n\nName: ${inquiryData.name}\nEmail: ${inquiryData.email}\nInquiry Focus: ${inquiryData.inquiryFocus}\n\nMessage:\n${inquiryData.message}\n`
+  )}`;
 
   const handleExploreClick = (e) => {
     if (e && e.preventDefault) e.preventDefault();
@@ -3009,11 +2859,37 @@ export function Layout({ children }) {
     }
   };
 
-  // Recognizable social links for footer
+  // Essential social & creative links for footer
   const footerSocials = [
-    { id: 'github', label: 'GitHub', url: 'https://github.com/jsumaiyarpa', unconfigured: false },
-    { id: 'linkedin', label: 'LinkedIn', url: 'https://www.linkedin.com/in/sumaiya-jannat-arpa/', unconfigured: false },
-    { id: 'behance', label: 'Behance', url: 'https://www.behance.net/sumaiyarpa2', unconfigured: false },
+    {
+      id: 'linkedin',
+      label: 'LinkedIn',
+      handle: '@sumaiya-jannat-arpa',
+      url: 'https://www.linkedin.com/in/sumaiya-jannat-arpa/',
+    },
+    {
+      id: 'behance',
+      label: 'Behance',
+      handle: '@sumaiyarpa2',
+      url: 'https://www.behance.net/sumaiyarpa2',
+    },
+    {
+      id: 'github',
+      label: 'GitHub',
+      handle: '@jsumaiyarpa',
+      url: 'https://github.com/jsumaiyarpa',
+    },
+  ];
+
+  // Mobile navigation items
+  const mobileNavItems = [
+    { to: '#hero', label: 'Home' },
+    { to: '#about', label: 'About' },
+    { to: '#skills', label: 'Skills' },
+    { to: '#projects', label: 'Projects' },
+    { to: '#reviews', label: 'Reviews' },
+    { to: '#contact', label: 'Contact' },
+    { to: '#connect', label: 'Connect' },
   ];
 
   return (
@@ -3023,10 +2899,10 @@ export function Layout({ children }) {
       {/* Primary Sticky Bar — Translucent Glass Surface */}
       <header className="primary-bar">
         <div className="site-wrapper bar-inner">
-          {/* Left Side: Circular Profile Picture ONLY (No text logo, no monogram) */}
+          {/* Left Side: Home (Brand Avatar Link) */}
           <NavAvatar src={site.portrait || '/images/portrait.jpg'} onClick={handleAvatarClick} />
 
-          {/* Desktop Navigation: Exactly 5 items */}
+          {/* Center: Exactly 5 items (About | Skills | Projects | Reviews | Contact) */}
           <nav className="desktop-nav" aria-label="Main Navigation">
             {site.nav.map((item) => (
               <a
@@ -3040,17 +2916,17 @@ export function Layout({ children }) {
             ))}
           </nav>
 
-          {/* Right Side: Action Cluster (Hire Me CTA & Mobile Trigger) */}
+          {/* Right Side: Connect CTA & Mobile Trigger */}
           <div className="bar-actions-cluster">
-            {/* Hire Me CTA Button */}
-            <button
-              type="button"
-              className="nav-hire-btn"
-              aria-label="Hire Me"
-              onClick={(e) => handleNavClick(e, '#hire')}
+            {/* Desktop Connect button */}
+            <a
+              href="#connect"
+              className="nav-connect-pill"
+              onClick={(e) => handleNavClick(e, '#connect')}
+              aria-label="Connect — Navigate to Connect & Follow"
             >
-              <span>Hire Me</span>
-            </button>
+              <span>Connect</span>
+            </a>
 
             {/* Mobile Menu Trigger */}
             <button
@@ -3079,7 +2955,7 @@ export function Layout({ children }) {
           </div>
 
           <nav className="mobile-nav-links" aria-label="Mobile Navigation">
-            {site.nav.map((item) => (
+            {mobileNavItems.map((item) => (
               <a
                 key={item.to}
                 href={item.to}
@@ -3113,98 +2989,283 @@ export function Layout({ children }) {
         {children}
       </main>
 
-      {/* Upper Showcase Deck Section immediately above the footer */}
-      <FooterShowcaseDeck onNavigate={handleNavClick} revealKey={revealKey} />
+      {/* Illustrated Artwork Footer */}
+      {/* Recreated Wireframe Footer (Exact Match to User Reference Drawing) */}
+      <footer className="site-footer-reference" role="contentinfo">
+        <div className="site-wrapper footer-reference-inner">
 
-      {/* Refined Footer: Two Clear Columns on Desktop */}
-      <footer id="contact" className="editorial-footer">
-        <div className="site-wrapper footer-inner">
-          <div className="footer-columns-grid">
-            {/* Left column: Connect & Follow */}
-            <div className="footer-col footer-socials-col">
-              <h3 className="footer-col-title">Connect &amp; <span className="ref-about-heading-bold">Follow</span></h3>
+          {/* ========================================================
+              TIER 1: TOP AREA (Get in Touch + Inquiry Form & Contact Info / Quick Links)
+             ======================================================== */}
+          <div id="contact" className="footer-top-grid">
 
-              <div className="footer-social-icons-cluster" role="list" aria-label="Social profiles">
-                {footerSocials.map((s) => (
-                  s.unconfigured ? (
-                    <span
-                      key={s.id}
-                      className="footer-social-icon-btn disabled"
-                      title={`${s.label} (Not configured)`}
-                      aria-label={`${s.label} profile (currently unconfigured)`}
-                    >
-                      <SocialIcon name={s.id} />
-                      <span className="social-icon-tooltip">{s.label}</span>
-                    </span>
-                  ) : (
+            {/* Left Column: Get in Touch & Direct Inquiry Form */}
+            <div className="footer-touch-col">
+              <h2 className="sec-title footer-touch-heading">
+                Get in <span className="ref-about-heading-bold">Touch</span>
+              </h2>
+
+              {inquiryStatus === 'success' ? (
+                <div className="inquiry-success-state" role="status" aria-live="polite">
+                  <div className="inquiry-success-badge">
+                    <Icon name="check" size={16} />
+                    <span>Message Prepared</span>
+                  </div>
+                  <p className="inquiry-success-text">
+                    Thank you, <strong>{inquiryData.name}</strong>. Your message details have been organized. You can launch your email client directly or send another inquiry.
+                  </p>
+                  <div className="inquiry-success-actions">
                     <a
-                      key={s.id}
-                      href={s.url}
+                      href={mailtoInquiryUrl}
+                      className="inquiry-action-primary"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="footer-social-icon-btn"
-                      title={s.label}
-                      aria-label={`Visit ${s.label} profile`}
                     >
-                      <SocialIcon name={s.id} />
-                      <span className="social-icon-tooltip">{s.label}</span>
+                      <Icon name="mail" size={14} />
+                      <span>Open in Email App</span>
+                      <Icon name="arrow-up-right" size={13} />
                     </a>
-                  )
-                ))}
+                    <button
+                      type="button"
+                      className="inquiry-action-secondary"
+                      onClick={handleInquiryReset}
+                    >
+                      <span>Send Another Message</span>
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <form className="inquiry-form-sketch" onSubmit={handleInquirySubmit} noValidate>
+                  {inquiryStatus === 'error' && inquiryError && (
+                    <div className="inquiry-error-banner" role="alert">
+                      <Icon name="help-circle" size={14} />
+                      <span>{inquiryError}</span>
+                    </div>
+                  )}
+
+                  {/* Row 1: Full Name * & Email * (Two fields side by side) */}
+                  <div className="inquiry-row-two">
+                    <div className="inquiry-field-group">
+                      <label htmlFor="inquiry-name" className="inquiry-label">
+                        Full Name <span className="inquiry-req">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        id="inquiry-name"
+                        name="name"
+                        value={inquiryData.name}
+                        onChange={handleInquiryChange}
+                        placeholder="Your full name"
+                        autoComplete="name"
+                        required
+                        className="inquiry-input"
+                      />
+                    </div>
+
+                    <div className="inquiry-field-group">
+                      <label htmlFor="inquiry-email" className="inquiry-label">
+                        Email <span className="inquiry-req">*</span>
+                      </label>
+                      <input
+                        type="email"
+                        id="inquiry-email"
+                        name="email"
+                        value={inquiryData.email}
+                        onChange={handleInquiryChange}
+                        placeholder="your.email@example.com"
+                        autoComplete="email"
+                        required
+                        className="inquiry-input"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Row 2: Message * (Underneath, spanning full width) */}
+                  <div className="inquiry-field-group full-width">
+                    <label htmlFor="inquiry-message" className="inquiry-label">
+                      Message <span className="inquiry-req">*</span>
+                    </label>
+                    <textarea
+                      id="inquiry-message"
+                      name="message"
+                      rows={4}
+                      value={inquiryData.message}
+                      onChange={handleInquiryChange}
+                      placeholder="Write your message here..."
+                      required
+                      className="inquiry-textarea"
+                    />
+                  </div>
+
+                  {/* Row 3: Inquiry Focus (left) and Send Email (right) */}
+                  <div className="inquiry-row-controls">
+                    <div className="inquiry-field-group inquiry-select-group">
+                      <label htmlFor="inquiry-focus" className="inquiry-label">
+                        Inquiry Focus
+                      </label>
+                      <div className="inquiry-select-wrapper">
+                        <select
+                          id="inquiry-focus"
+                          name="inquiryFocus"
+                          value={inquiryData.inquiryFocus}
+                          onChange={handleInquiryChange}
+                          className="inquiry-select"
+                        >
+                          <option value="Software Engineering">Software Engineering</option>
+                          <option value="UI/UX Design">UI/UX Design</option>
+                          <option value="SQA & Testing">SQA &amp; Testing</option>
+                          <option value="Other / Collaboration">Other / Collaboration</option>
+                        </select>
+                        <span className="inquiry-select-chevron" aria-hidden="true">
+                          <Icon name="chevron-down" size={13} />
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="inquiry-submit-group">
+                      <button
+                        type="submit"
+                        className="inquiry-send-btn"
+                        disabled={inquiryStatus === 'submitting'}
+                      >
+                        {inquiryStatus === 'submitting' ? (
+                          <>
+                            <span className="inquiry-spinner" aria-hidden="true" />
+                            <span>Sending...</span>
+                          </>
+                        ) : (
+                          <>
+                            <span>Send Email</span>
+                            <Icon name="send" size={13} />
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              )}
+            </div>
+
+            {/* Right Column: Direct Contact Details & Quick Links Card */}
+            <div className="footer-side-col">
+              {/* Direct Contact Items: Email & Location */}
+              <div className="footer-direct-contact">
+                <div className="footer-contact-row">
+                  <span className="footer-contact-icon" aria-hidden="true">
+                    <Icon name="mail" size={16} />
+                  </span>
+                  <a href={`mailto:${site.email}`} className="footer-contact-link">
+                    {site.email}
+                  </a>
+                </div>
+                <div className="footer-contact-row">
+                  <span className="footer-contact-icon" aria-hidden="true">
+                    <Icon name="map-pin" size={16} />
+                  </span>
+                  <span className="footer-contact-text">
+                    {site.location}
+                  </span>
+                </div>
               </div>
 
-              <div className="footer-badge-pill">
-                <span className="footer-badge-dot" aria-hidden="true" />
-                <span>Open for Opportunities &amp; Collaboration</span>
+              {/* Quick Links Card */}
+              <div className="footer-quick-card">
+                <div className="footer-quick-content">
+                  <h4 className="footer-quick-heading">
+                    Before you go,
+                    <span className="footer-quick-subheading">check out the quick links</span>
+                  </h4>
+                </div>
+                <div className="footer-quick-action">
+                  <a
+                    href="#quick-access"
+                    onClick={handleExploreClick}
+                    className="footer-explore-pill"
+                    aria-label="Explore quick access links"
+                  >
+                    <span>Explore</span>
+                    <Icon name="arrow-up-right" size={14} strokeWidth={2.4} />
+                  </a>
+                </div>
               </div>
             </div>
 
-            {/* Right column: Promo Card & Get in Touch */}
-            <div className="footer-col footer-right-col">
-              {/* Promotional Callout Card Matching Visual Reference */}
-              <div className="footer-promo-card">
-                <div className="footer-promo-text">
-                  <span className="footer-promo-lead">Before you go,</span>
-                  <span className="footer-promo-sub">check out these links</span>
-                </div>
-                <a
-                  href="#quick-access"
-                  onClick={handleExploreClick}
-                  className="footer-promo-btn"
-                  aria-label="Explore quick access links"
-                >
-                  <span>Explore!</span>
-                  <Icon name="arrow-up-right" size={14} strokeWidth={2.4} />
-                </a>
-              </div>
+          </div>
 
-              <div className="footer-contact-block">
-                <h3 className="footer-col-title">Get in <span className="ref-about-heading-bold">Touch</span></h3>
-                <div className="footer-contact-items">
-                  <div className="footer-contact-row">
-                    <Icon name="mail" size={15} style={{ opacity: 0.7 }} />
-                    <a href={`mailto:${site.email}`} className="footer-contact-action">
-                      {site.email}
-                    </a>
-                  </div>
-                  <div className="footer-contact-row">
-                    <Icon name="map-pin" size={15} style={{ opacity: 0.7 }} />
-                    <span className="footer-contact-text">
-                      {site.location}
+          {/* ========================================================
+              DIVIDER 1: Horizontal line between Get in Touch and Quick Link Cards
+             ======================================================== */}
+          <div className="footer-section-divider" aria-hidden="true" />
+
+          {/* ========================================================
+              TIER 2: QUICK LINK CARDS (3-Card Fanned Showcase Deck)
+             ======================================================== */}
+          <FooterShowcaseDeck onNavigate={handleNavClick} revealKey={revealKey} />
+
+          {/* ========================================================
+              DIVIDER 2: Horizontal line between Quick Link Cards and Connect & Follow
+             ======================================================== */}
+          <div className="footer-section-divider" aria-hidden="true" />
+
+          {/* ========================================================
+              TIER 3: CONNECT & FOLLOW (Clean Social Channels)
+             ======================================================== */}
+          <div id="connect" className="footer-connect-tier">
+            <h2 className="sec-title footer-connect-heading">
+              Connect &amp; <span className="ref-about-heading-bold">Follow</span>
+            </h2>
+
+            <div className="footer-channels-grid" role="list" aria-label="Social and Creative Channels">
+              {footerSocials.map((s) => (
+                <a
+                  key={s.id}
+                  href={s.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`footer-channel-card footer-channel-${s.id}`}
+                  title={`Visit ${s.label} profile (${s.handle})`}
+                  aria-label={`Visit ${s.label} profile at ${s.handle}`}
+                >
+                  <div className="footer-channel-main">
+                    <span className="footer-channel-icon-box" aria-hidden="true">
+                      <SocialIcon name={s.id} />
                     </span>
+                    <div className="footer-channel-info">
+                      <h3 className="footer-channel-title">{s.label}</h3>
+                      <span className="footer-channel-handle">{s.handle}</span>
+                    </div>
                   </div>
-                </div>
-              </div>
+
+                  <span className="footer-channel-action" aria-hidden="true">
+                    <Icon name="arrow-up-right" size={14} />
+                  </span>
+
+                  <span className="footer-channel-accent-rail" aria-hidden="true" />
+                </a>
+              ))}
             </div>
           </div>
 
-          {/* Footer bottom row */}
-          <div className="footer-bottom-row">
-            <div className="footer-copy">
-              PORTFOLIO {new Date().getFullYear()}
+          {/* ========================================================
+              DIVIDER 3: Horizontal line between Connect & Follow and Copyright Bar
+             ======================================================== */}
+          <div className="footer-section-divider" aria-hidden="true" />
+
+          {/* ========================================================
+              TIER 4: BOTTOM COPYRIGHT BAR
+             ======================================================== */}
+          <div className="footer-bottom-tier">
+            <div className="footer-bottom-left">
+              <span className="footer-brand-monogram" aria-hidden="true">
+                <span className="footer-monogram-square" />
+              </span>
+              <span className="footer-colophon-brand">PORTFOLIO {new Date().getFullYear()}</span>
+              <span className="footer-colophon-sep">|</span>
+              <span className="footer-colophon-author">Sumaiya Jannat Arpa</span>
             </div>
-            <div className="footer-bottom-actions">
-              <span className="footer-rights">&copy; All rights reserved.</span>
+
+            <div className="footer-bottom-right">
+              <span className="footer-rights-label">&copy; All rights reserved</span>
               <a
                 href={site.cvUrl}
                 download="Sumaiya_Jannat_Arpa_Resume.pdf"
@@ -3216,6 +3277,7 @@ export function Layout({ children }) {
               </a>
             </div>
           </div>
+
         </div>
       </footer>
     </div>
