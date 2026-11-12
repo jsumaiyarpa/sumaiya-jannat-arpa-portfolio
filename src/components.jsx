@@ -2807,17 +2807,15 @@ export function Layout({ children }) {
     }
   };
 
-  // Direct Inquiry Form state & handler for footer
+  // Direct Inquiry Form state & handler for footer (powered by Web3Forms)
   const [inquiryData, setInquiryData] = useState({
     name: '',
     email: '',
     inquiryFocus: 'Software Engineering',
     message: '',
   });
-  const [inquiryStatus, setInquiryStatus] = useState('idle'); // 'idle' | 'opened' | 'error'
+  const [inquiryStatus, setInquiryStatus] = useState('idle'); // 'idle' | 'submitting' | 'success' | 'error'
   const [inquiryError, setInquiryError] = useState('');
-  const [inquiryNotice, setInquiryNotice] = useState('');
-  const [gmailComposeUrl, setGmailComposeUrl] = useState('');
 
   const handleInquiryChange = (e) => {
     const { name, value } = e.target;
@@ -2828,10 +2826,15 @@ export function Layout({ children }) {
     }
   };
 
-  const handleInquirySubmit = (e) => {
+  const handleInquirySubmit = async (e) => {
     if (e && e.preventDefault) {
       e.preventDefault();
     }
+    // Prevent duplicate submissions while in flight
+    if (inquiryStatus === 'submitting') {
+      return;
+    }
+
     const trimmedName = (inquiryData.name || '').trim();
     const trimmedEmail = (inquiryData.email || '').trim();
     const trimmedMessage = (inquiryData.message || '').trim();
@@ -2840,7 +2843,6 @@ export function Layout({ children }) {
     if (!trimmedName || trimmedName.length < 2) {
       setInquiryStatus('error');
       setInquiryError('Please enter your full name (minimum 2 characters).');
-      setInquiryNotice('');
       return;
     }
 
@@ -2848,52 +2850,60 @@ export function Layout({ children }) {
     if (!trimmedEmail || !emailRegex.test(trimmedEmail)) {
       setInquiryStatus('error');
       setInquiryError('Please enter a valid email address.');
-      setInquiryNotice('');
       return;
     }
 
     if (!trimmedMessage || trimmedMessage.length < 10) {
       setInquiryStatus('error');
       setInquiryError('Please enter a message (minimum 10 characters).');
-      setInquiryNotice('');
       return;
     }
 
-    const recipient = 'jannat.sumiyarpa@gmail.com';
-    const subject = `[Portfolio Inquiry: ${focus}] From ${trimmedName}`;
-    const emailBody = `Hello Sumaiya,\n\nName: ${trimmedName}\nEmail: ${trimmedEmail}\nInquiry Focus: ${focus}\n\nMessage:\n${trimmedMessage}`;
-
-    const params = new URLSearchParams({
-      view: 'cm',
-      fs: '1',
-      to: recipient,
-      su: subject,
-      body: emailBody,
-    });
-    const gmailUrl = `https://mail.google.com/mail/?${params.toString()}`;
-
-    setInquiryStatus('opened');
-    setInquiryError('');
-    setGmailComposeUrl(gmailUrl);
-
-    // Open Gmail Compose in a new browser tab
-    let popupBlocked = false;
-    try {
-      const newTab = window.open(gmailUrl, '_blank', 'noopener,noreferrer');
-      if (!newTab || newTab.closed || typeof newTab.closed === 'undefined') {
-        popupBlocked = true;
-      }
-    } catch (err) {
-      popupBlocked = true;
+    const accessKey = import.meta.env.VITE_WEB3FORMS_ACCESS_KEY;
+    if (!accessKey) {
+      setInquiryStatus('error');
+      setInquiryError(
+        'Contact service configuration missing. Please verify VITE_WEB3FORMS_ACCESS_KEY is set in your environment.'
+      );
+      return;
     }
 
-    if (popupBlocked) {
-      setInquiryNotice(
-        'Your browser prevented Gmail Compose from opening automatically. Please click the link below to open Gmail Compose and complete sending your message:'
-      );
-    } else {
-      setInquiryNotice(
-        'Gmail Compose has opened in a new tab with your message pre-filled. Please press Send in Gmail to complete the process.'
+    setInquiryStatus('submitting');
+    setInquiryError('');
+
+    try {
+      const response = await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({
+          access_key: accessKey,
+          name: trimmedName,
+          email: trimmedEmail,
+          subject: `[Portfolio Inquiry: ${focus}] From ${trimmedName}`,
+          message: trimmedMessage,
+          inquiry_focus: focus,
+          from_name: 'Sumaiya Portfolio Contact',
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setInquiryStatus('success');
+        setInquiryError('');
+      } else {
+        setInquiryStatus('error');
+        setInquiryError(
+          result.message || 'Unable to submit your message right now. Please try again or reach out directly.'
+        );
+      }
+    } catch (err) {
+      setInquiryStatus('error');
+      setInquiryError(
+        'A network error occurred while submitting your message. Please check your connection and try again.'
       );
     }
   };
@@ -2934,7 +2944,7 @@ export function Layout({ children }) {
     {
       id: 'behance',
       label: 'Behance',
-      handle: '@sumaiyarpa2',
+      handle: '@sumaiyaarpa2',
       url: 'https://www.behance.net/sumaiyaarpa2',
     },
     {
@@ -3069,129 +3079,150 @@ export function Layout({ children }) {
                 Get in <span className="ref-about-heading-bold">Touch</span>
               </h2>
 
-              <form className="inquiry-form-sketch" onSubmit={handleInquirySubmit} noValidate>
-                {inquiryStatus === 'error' && inquiryError && (
-                  <div className="inquiry-error-banner" role="alert">
-                    <Icon name="help-circle" size={14} />
-                    <span>{inquiryError}</span>
+              {inquiryStatus === 'success' ? (
+                <div className="inquiry-success-state" role="status" aria-live="polite">
+                  <div className="inquiry-success-badge">
+                    <Icon name="check-circle" size={15} />
+                    <span>Message Sent Successfully</span>
                   </div>
-                )}
-
-                {inquiryNotice && (
-                  <div className="inquiry-notice-banner" role="status" aria-live="polite">
-                    <span className="inquiry-notice-icon" aria-hidden="true">
-                      <Icon name="mail" size={15} />
-                    </span>
-                    <div className="inquiry-notice-text">
-                      <span>{inquiryNotice}</span>
-                      {gmailComposeUrl && (
-                        <div className="inquiry-notice-link-wrap">
-                          <a
-                            href={gmailComposeUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inquiry-notice-link"
-                          >
-                            <span>Click here if Gmail Compose didn't open in a new tab</span>
-                            <Icon name="arrow-up-right" size={12} />
-                          </a>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Row 1: Full Name * & Email * (Two fields side by side) */}
-                <div className="inquiry-row-two">
-                  <div className="inquiry-field-group">
-                    <label htmlFor="inquiry-name" className="inquiry-label">
-                      Full Name <span className="inquiry-req">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      id="inquiry-name"
-                      name="name"
-                      value={inquiryData.name}
-                      onChange={handleInquiryChange}
-                      placeholder="Your full name"
-                      autoComplete="name"
-                      required
-                      className="inquiry-input"
-                    />
-                  </div>
-
-                  <div className="inquiry-field-group">
-                    <label htmlFor="inquiry-email" className="inquiry-label">
-                      Email <span className="inquiry-req">*</span>
-                    </label>
-                    <input
-                      type="email"
-                      id="inquiry-email"
-                      name="email"
-                      value={inquiryData.email}
-                      onChange={handleInquiryChange}
-                      placeholder="your.email@example.com"
-                      autoComplete="email"
-                      required
-                      className="inquiry-input"
-                    />
-                  </div>
-                </div>
-
-                {/* Row 2: Message * (Underneath, spanning full width) */}
-                <div className="inquiry-field-group full-width">
-                  <label htmlFor="inquiry-message" className="inquiry-label">
-                    Message <span className="inquiry-req">*</span>
-                  </label>
-                  <textarea
-                    id="inquiry-message"
-                    name="message"
-                    rows={4}
-                    value={inquiryData.message}
-                    onChange={handleInquiryChange}
-                    placeholder="Write your message here..."
-                    required
-                    className="inquiry-textarea"
-                  />
-                </div>
-
-                {/* Row 3: Inquiry Focus (left) and Send Email (right) */}
-                <div className="inquiry-row-controls">
-                  <div className="inquiry-field-group inquiry-select-group">
-                    <label htmlFor="inquiry-focus" className="inquiry-label">
-                      Inquiry Focus
-                    </label>
-                    <div className="inquiry-select-wrapper">
-                      <select
-                        id="inquiry-focus"
-                        name="inquiryFocus"
-                        value={inquiryData.inquiryFocus}
-                        onChange={handleInquiryChange}
-                        className="inquiry-select"
-                      >
-                        <option value="Software Engineering">Software Engineering</option>
-                        <option value="UI/UX Design">UI/UX Design</option>
-                        <option value="SQA & Testing">SQA &amp; Testing</option>
-                        <option value="Other / Collaboration">Other / Collaboration</option>
-                      </select>
-                      <span className="inquiry-select-chevron" aria-hidden="true">
-                        <Icon name="chevron-down" size={13} />
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="inquiry-submit-group">
+                  <p className="inquiry-success-text">
+                    Thank you{inquiryData.name ? `, ${inquiryData.name}` : ''}! Your message regarding{' '}
+                    <strong>{inquiryData.inquiryFocus || 'your inquiry'}</strong> has been sent to my inbox. I will review it and get back to you shortly.
+                  </p>
+                  <div className="inquiry-success-actions">
                     <button
-                      type="submit"
-                      className="inquiry-send-btn"
-                      onClick={handleInquirySubmit}
+                      type="button"
+                      className="inquiry-action-secondary"
+                      onClick={() => {
+                        setInquiryData({
+                          name: '',
+                          email: '',
+                          inquiryFocus: 'Software Engineering',
+                          message: '',
+                        });
+                        setInquiryStatus('idle');
+                        setInquiryError('');
+                      }}
                     >
-                      <span>Send Email</span>
-                      <Icon name="send" size={13} />
+                      <span>Send Another Message</span>
                     </button>
                   </div>
                 </div>
-              </form>
+              ) : (
+                <form className="inquiry-form-sketch" onSubmit={handleInquirySubmit} noValidate>
+                  {inquiryStatus === 'error' && inquiryError && (
+                    <div className="inquiry-error-banner" role="alert">
+                      <Icon name="help-circle" size={14} />
+                      <span>{inquiryError}</span>
+                    </div>
+                  )}
+
+                  {/* Row 1: Full Name * & Email * (Two fields side by side) */}
+                  <div className="inquiry-row-two">
+                    <div className="inquiry-field-group">
+                      <label htmlFor="inquiry-name" className="inquiry-label">
+                        Full Name <span className="inquiry-req">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        id="inquiry-name"
+                        name="name"
+                        value={inquiryData.name}
+                        onChange={handleInquiryChange}
+                        placeholder="Your full name"
+                        autoComplete="name"
+                        required
+                        disabled={inquiryStatus === 'submitting'}
+                        className="inquiry-input"
+                      />
+                    </div>
+
+                    <div className="inquiry-field-group">
+                      <label htmlFor="inquiry-email" className="inquiry-label">
+                        Email <span className="inquiry-req">*</span>
+                      </label>
+                      <input
+                        type="email"
+                        id="inquiry-email"
+                        name="email"
+                        value={inquiryData.email}
+                        onChange={handleInquiryChange}
+                        placeholder="your.email@example.com"
+                        autoComplete="email"
+                        required
+                        disabled={inquiryStatus === 'submitting'}
+                        className="inquiry-input"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Row 2: Message * (Underneath, spanning full width) */}
+                  <div className="inquiry-field-group full-width">
+                    <label htmlFor="inquiry-message" className="inquiry-label">
+                      Message <span className="inquiry-req">*</span>
+                    </label>
+                    <textarea
+                      id="inquiry-message"
+                      name="message"
+                      rows={4}
+                      value={inquiryData.message}
+                      onChange={handleInquiryChange}
+                      placeholder="Write your message here..."
+                      required
+                      disabled={inquiryStatus === 'submitting'}
+                      className="inquiry-textarea"
+                    />
+                  </div>
+
+                  {/* Row 3: Inquiry Focus (left) and Send Email (right) */}
+                  <div className="inquiry-row-controls">
+                    <div className="inquiry-field-group inquiry-select-group">
+                      <label htmlFor="inquiry-focus" className="inquiry-label">
+                        Inquiry Focus
+                      </label>
+                      <div className="inquiry-select-wrapper">
+                        <select
+                          id="inquiry-focus"
+                          name="inquiryFocus"
+                          value={inquiryData.inquiryFocus}
+                          onChange={handleInquiryChange}
+                          disabled={inquiryStatus === 'submitting'}
+                          className="inquiry-select"
+                        >
+                          <option value="Software Engineering">Software Engineering</option>
+                          <option value="UI/UX Design">UI/UX Design</option>
+                          <option value="SQA & Testing">SQA &amp; Testing</option>
+                          <option value="Other / Collaboration">Other / Collaboration</option>
+                        </select>
+                        <span className="inquiry-select-chevron" aria-hidden="true">
+                          <Icon name="chevron-down" size={13} />
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="inquiry-submit-group">
+                      <button
+                        type="submit"
+                        className="inquiry-send-btn"
+                        disabled={inquiryStatus === 'submitting'}
+                        aria-busy={inquiryStatus === 'submitting'}
+                      >
+                        {inquiryStatus === 'submitting' ? (
+                          <>
+                            <span className="inquiry-spinner" aria-hidden="true" />
+                            <span>Sending...</span>
+                          </>
+                        ) : (
+                          <>
+                            <span>Send Message</span>
+                            <Icon name="send" size={13} />
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              )}
             </div>
 
             {/* Right Column: Direct Contact Details & Quick Links Card */}
