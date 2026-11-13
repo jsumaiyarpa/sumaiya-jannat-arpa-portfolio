@@ -243,7 +243,7 @@ The project is architected for deployment across modern cloud platforms:
 
 East West University, Dhaka, Bangladesh
 
-- **Portfolio:** [sumaiya-jannat-arpa.vercel.app](https://sumaiya-jannat-arpa.vercel.app)
+- **Portfolio:** [sumaiya-jannat-arpa.vercel.app](sumaiya-jannat-arpa-portfolio.vercel.app)
 - **GitHub:** [@jsumaiyarpa](https://github.com/jsumaiyarpa)
 - **LinkedIn:** [linkedin.com/in/sumaiya-jannat-arpa](https://linkedin.com/in/sumaiya-jannat-arpa)
 - **Email:** [jannat.sumaiyarpa@gmail.com](mailto:jannat.sumaiyarpa@gmail.com)
