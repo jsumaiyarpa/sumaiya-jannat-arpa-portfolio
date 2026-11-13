@@ -1,6 +1,6 @@
 # Sumaiya Jannat Arpa — Personal Portfolio
 
-[![Live Site](https://img.shields.io/badge/Live_Site-sumaiya--jannat--arpa.vercel.app-080A0F?style=for-the-badge&logo=vercel&logoColor=white)](https://sumaiya-jannat-arpa.vercel.app)
+[![Live Website](https://img.shields.io/badge/Live_Website-Visit_Portfolio-080A0F?style=for-the-badge&logo=vercel&logoColor=white)](https://sumaiya-jannat-arpa-portfolio.vercel.app)
 [![GitHub](https://img.shields.io/badge/GitHub-jsumaiyarpa-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/jsumaiyarpa/sumaiya-jannat-arpa-portfolio)
 [![React](https://img.shields.io/badge/React_18-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
 [![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
