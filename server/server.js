@@ -14,11 +14,14 @@ import {
 
 const app = express();
 
+// Trust reverse proxy (Render, Cloudflare) for accurate client IP and secure cookies
+app.set("trust proxy", 1);
+
 app.use(helmet());
 
 app.use(
   cors({
-    origin: env.clientOrigin,
+    origin: env.allowedOrigins,
     credentials: true,
   })
 );

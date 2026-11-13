@@ -10,13 +10,30 @@ export default function AdminProtectedRoute({ children }) {
   useEffect(() => {
     let active = true;
 
-    adminApi('/api/auth/me')
-      .then(() => {
+    async function verifyAuth() {
+      try {
+        await adminApi('/api/auth/me');
         if (active) setStatus('authenticated');
-      })
-      .catch(() => {
+      } catch (err) {
+        // If 401, retry once after a short delay in case of cross-origin cookie sync delay
+        if (err.status === 401) {
+          try {
+            await new Promise((resolve) => setTimeout(resolve, 200));
+            if (!active) return;
+            await adminApi('/api/auth/me');
+            if (active) {
+              setStatus('authenticated');
+              return;
+            }
+          } catch {
+            // Second attempt failed, proceed to unauthenticated
+          }
+        }
         if (active) setStatus('unauthenticated');
-      });
+      }
+    }
+
+    verifyAuth();
 
     return () => {
       active = false;

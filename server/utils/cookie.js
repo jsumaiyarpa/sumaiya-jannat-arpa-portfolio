@@ -4,20 +4,37 @@ import { env } from "../config/env.js";
 
 const SESSION_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
 
-const cookieOptions = {
+const isProduction =
+  env.nodeEnv === "production" || process.env.RENDER === "true";
+
+export const cookieOptions = {
   httpOnly: true,
-  secure: env.nodeEnv === "production",
-  sameSite: "strict",
+  secure: isProduction,
+  sameSite: isProduction ? "none" : "lax",
   path: "/",
 };
 
+export function getCookieOptions() {
+  const isProd =
+    process.env.NODE_ENV === "production" ||
+    process.env.RENDER === "true" ||
+    env.nodeEnv === "production";
+
+  return {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: isProd ? "none" : "lax",
+    path: "/",
+  };
+}
+
 export function setSessionCookie(res, token) {
   res.cookie(SESSION_COOKIE_NAME, token, {
-    ...cookieOptions,
+    ...getCookieOptions(),
     maxAge: SESSION_MAX_AGE,
   });
 }
 
 export function clearSessionCookie(res) {
-  res.clearCookie(SESSION_COOKIE_NAME, cookieOptions);
+  res.clearCookie(SESSION_COOKIE_NAME, getCookieOptions());
 }

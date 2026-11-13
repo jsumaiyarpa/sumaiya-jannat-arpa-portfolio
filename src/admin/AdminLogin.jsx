@@ -41,6 +41,27 @@ export default function AdminLogin() {
         body: credentials,
       });
 
+      // Confirm session is active before routing to dashboard
+      // Handles cross-origin cookie store synchronization across browsers
+      let verified = false;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          await adminApi('/api/auth/me');
+          verified = true;
+          break;
+        } catch {
+          if (attempt < 2) {
+            await new Promise((resolve) => setTimeout(resolve, 150));
+          }
+        }
+      }
+
+      if (!verified) {
+        throw new Error(
+          'Login succeeded, but your browser did not save the session cookie. Please check if cross-site cookies are blocked in your browser settings.'
+        );
+      }
+
       navigate('/admin/dashboard', { replace: true });
     } catch (err) {
       setError(
