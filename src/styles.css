@@ -7083,6 +7083,8 @@ footer[id] {
   position: relative;
   padding: 0 0 1.75rem;
   outline: none;
+  overflow: hidden;
+  touch-action: pan-y;
 }
 
 .reviews-coverflow-wrapper:focus-visible {
@@ -7488,6 +7490,7 @@ footer[id] {
 }
 
 .reviews-dot {
+  position: relative;
   width: 8px;
   height: 8px;
   padding: 0;
@@ -7501,6 +7504,16 @@ footer[id] {
     background-color 280ms ease,
     opacity 280ms ease,
     transform 200ms ease;
+}
+
+.reviews-dot::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 32px;
+  height: 32px;
 }
 
 .reviews-dot:hover {
@@ -7644,32 +7657,35 @@ footer[id] {
 /* Tablet Responsive (max-width: 1024px) */
 @media (max-width: 1024px) {
   .reviews-coverflow-stage {
-    min-height: 420px;
+    min-height: 400px;
     height: auto;
     perspective: 1000px;
+    width: 100%;
+    overflow: hidden;
   }
 
   .review-coverflow-card {
-    width: 370px;
-    min-height: 330px;
+    width: min(360px, calc(100vw - 3rem));
+    min-height: 320px;
     height: auto;
     border-radius: 20px;
   }
 
   .review-coverflow-card.slot-left-1 {
-    transform: translate(-50%, -50%) translateX(-250px) translateZ(-75px) rotateY(20deg) scale(0.88);
+    transform: translate(-50%, -50%) translateX(-195px) translateZ(-60px) rotateY(18deg) scale(0.84);
+    opacity: 0.75;
   }
 
   .review-coverflow-card.slot-right-1 {
-    transform: translate(-50%, -50%) translateX(250px) translateZ(-75px) rotateY(-20deg) scale(0.88);
+    transform: translate(-50%, -50%) translateX(195px) translateZ(-60px) rotateY(-18deg) scale(0.84);
+    opacity: 0.75;
   }
 
-  .review-coverflow-card.slot-left-2 {
-    transform: translate(-50%, -50%) translateX(-460px) translateZ(-150px) rotateY(34deg) scale(0.74);
-  }
-
+  .review-coverflow-card.slot-left-2,
   .review-coverflow-card.slot-right-2 {
-    transform: translate(-50%, -50%) translateX(460px) translateZ(-150px) rotateY(-34deg) scale(0.74);
+    transform: translate(-50%, -50%) translateX(0) translateZ(-200px) scale(0.6);
+    opacity: 0;
+    pointer-events: none;
   }
 }
 
@@ -7681,83 +7697,204 @@ footer[id] {
 
   .reviews-coverflow-wrapper {
     padding: 0 0 1.25rem;
+    width: 100%;
+    max-width: 100%;
     overflow: hidden;
+    touch-action: pan-y;
   }
 
   .reviews-coverflow-stage {
-    min-height: 390px;
+    min-height: 360px;
     height: auto;
-    perspective: 750px;
-    margin-top: -0.85rem;
+    perspective: 600px;
+    margin-top: -0.5rem;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
   }
 
   .review-coverflow-card {
-    width: min(380px, 92vw);
-    min-height: 320px;
+    width: min(380px, 100%);
+    max-width: 100%;
+    min-height: 300px;
     height: auto;
     border-radius: 18px;
+    box-sizing: border-box;
   }
 
   /* Center card prominent */
   .review-coverflow-card.slot-center {
-    transform: translate(-50%, -50%) translateX(0) translateZ(0) rotateY(0deg) scale(1);
+    transform: translate(-50%, -50%) translateX(0) scale(1);
+    opacity: 1;
+    pointer-events: auto;
+    z-index: 10;
     box-shadow:
       0 12px 30px -8px rgba(2, 6, 18, 0.5),
       0 0 0 1px rgba(142, 170, 215, 0.25);
   }
 
-  /* Near cards peek from screen edges */
+  /* Near cards slide away cleanly without overflowing mobile viewport */
   .review-coverflow-card.slot-left-1 {
-    transform: translate(-50%, -50%) translateX(-56%) translateZ(-40px) rotateY(14deg) scale(0.86);
-    opacity: 0.55;
+    transform: translate(-50%, -50%) translateX(-70px) scale(0.92);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 1;
   }
 
   .review-coverflow-card.slot-right-1 {
-    transform: translate(-50%, -50%) translateX(56%) translateZ(-40px) rotateY(-14deg) scale(0.86);
-    opacity: 0.55;
-  }
-
-  /* Far cards hidden on mobile to avoid overflow and distraction */
-  .review-coverflow-card.slot-left-2,
-  .review-coverflow-card.slot-right-2 {
+    transform: translate(-50%, -50%) translateX(70px) scale(0.92);
     opacity: 0;
     pointer-events: none;
-    transform: translate(-50%, -50%) translateX(0) translateZ(-200px) scale(0.5);
+    z-index: 1;
+  }
+
+  /* Far cards remain hidden to avoid overflow and distraction */
+  .review-coverflow-card.slot-left-2,
+  .review-coverflow-card.slot-right-2,
+  .review-coverflow-card.slot-hidden-left,
+  .review-coverflow-card.slot-hidden-right {
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, -50%) translateX(0) scale(0.7);
+    z-index: 0;
   }
 
   .card-art-content {
-    padding: 1.15rem 1.25rem 1.1rem;
+    padding: 1.15rem 1.15rem 1.05rem;
+    box-sizing: border-box;
+    width: 100%;
+  }
+
+  .card-top-bar {
+    margin-bottom: 0.65rem;
   }
 
   .card-serif-headline {
-    font-size: 1.16rem;
+    font-size: clamp(1.08rem, 4.2vw, 1.2rem);
     margin-bottom: 0.45rem;
-    line-height: 1.25;
+    line-height: 1.28;
+    overflow-wrap: break-word;
+    word-break: break-word;
   }
 
   .card-quote-body,
   .card-quote-excerpt {
-    font-size: 0.88rem;
+    font-size: clamp(0.85rem, 3.4vw, 0.9rem);
     line-height: 1.55;
-    margin-bottom: 0.8rem;
+    margin-bottom: 0.85rem;
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: break-word;
     -webkit-line-clamp: none;
     overflow: visible;
     text-overflow: clip;
   }
 
+  .card-author-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding-top: 0.75rem;
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
   .card-author-avatar-wrap {
     width: 36px;
     height: 36px;
+    flex-shrink: 0;
+  }
+
+  .card-author-meta {
+    min-width: 0;
+    flex: 1 1 auto;
+    overflow: hidden;
+  }
+
+  .card-author-name {
+    font-size: 0.92rem;
+    line-height: 1.25;
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+
+  .card-author-role {
+    font-size: 0.76rem;
+    line-height: 1.35;
+    overflow-wrap: break-word;
+    word-break: break-word;
   }
 
   .reviews-carousel-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     gap: 1rem;
-    margin-top: 1.25rem;
+    margin-top: 1.15rem;
   }
 
   .reviews-nav-arrow {
     width: 44px;
     height: 44px;
+    flex-shrink: 0;
+  }
+}
+
+/* Extra Small Screens (max-width: 360px) */
+@media (max-width: 360px) {
+  .reviews-coverflow-stage {
+    min-height: 340px;
+  }
+
+  .review-coverflow-card {
+    border-radius: 16px;
+    min-height: 280px;
+  }
+
+  .card-art-content {
+    padding: 0.95rem 0.9rem 0.9rem;
+  }
+
+  .card-peer-badge {
+    font-size: 0.6rem;
+    padding: 0.22rem 0.6rem;
+  }
+
+  .card-serif-headline {
+    font-size: 1.04rem;
+    line-height: 1.25;
+    margin-bottom: 0.35rem;
+  }
+
+  .card-quote-body,
+  .card-quote-excerpt {
+    font-size: 0.82rem;
+    line-height: 1.5;
+    margin-bottom: 0.75rem;
+  }
+
+  .card-author-avatar-wrap {
+    width: 32px;
+    height: 32px;
+  }
+
+  .card-author-name {
+    font-size: 0.86rem;
+  }
+
+  .card-author-role {
+    font-size: 0.72rem;
+  }
+
+  .reviews-carousel-controls {
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+
+  .reviews-nav-arrow {
+    width: 40px;
+    height: 40px;
   }
 }
 

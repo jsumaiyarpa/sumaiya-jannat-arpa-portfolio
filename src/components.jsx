@@ -1937,7 +1937,7 @@ export function ReviewsSection({ items }) {
   const [isPaused, setIsPaused] = useState(false);
   // Virtual index starts at 100 * N so user can navigate backward and forward freely
   const [activeVirtualIndex, setActiveVirtualIndex] = useState(() => 100 * Math.max(1, N));
-  const [touchStartX, setTouchStartX] = useState(null);
+  const touchStartPos = useRef(null);
 
   // Active real index for dots and current indicator
   const activeRealIndex = N > 0 ? ((activeVirtualIndex % N) + N) % N : 0;
@@ -1966,18 +1966,24 @@ export function ReviewsSection({ items }) {
     const updateStageHeight = () => {
       if (!stageRef.current) return;
       const cards = stageRef.current.querySelectorAll('.review-coverflow-card');
-      let maxH = 340;
+      let maxH = 0;
       cards.forEach((card) => {
         const contentEl = card.querySelector('.card-art-content');
         const h = contentEl ? contentEl.scrollHeight : card.scrollHeight;
         if (h > maxH) maxH = h;
       });
-      setStageMinHeight(Math.max(420, maxH + 36));
+      const isMobile = typeof window !== 'undefined' && window.innerWidth <= 767;
+      const baseMin = isMobile ? 340 : 420;
+      const buffer = isMobile ? 24 : 36;
+      setStageMinHeight(Math.max(baseMin, maxH + buffer));
     };
 
     updateStageHeight();
     const id = requestAnimationFrame(updateStageHeight);
     window.addEventListener('resize', updateStageHeight);
+    if (typeof document !== 'undefined' && document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(updateStageHeight).catch(() => {});
+    }
     return () => {
       cancelAnimationFrame(id);
       window.removeEventListener('resize', updateStageHeight);
@@ -1997,19 +2003,33 @@ export function ReviewsSection({ items }) {
 
   const handleTouchStart = (e) => {
     setIsPaused(true);
-    setTouchStartX(e.touches[0].clientX);
+    if (e.touches && e.touches[0]) {
+      touchStartPos.current = {
+        x: e.touches[0].clientX,
+        y: e.touches[0].clientY,
+      };
+    }
   };
 
   const handleTouchEnd = (e) => {
     setIsPaused(false);
-    if (touchStartX === null) return;
-    const deltaX = e.changedTouches[0].clientX - touchStartX;
-    if (deltaX > 40) {
-      handlePrev();
-    } else if (deltaX < -40) {
-      handleNext();
+    if (!touchStartPos.current || !e.changedTouches || !e.changedTouches[0]) return;
+    const deltaX = e.changedTouches[0].clientX - touchStartPos.current.x;
+    const deltaY = e.changedTouches[0].clientY - touchStartPos.current.y;
+    // Disambiguate horizontal swipe from vertical page scroll
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 35) {
+      if (deltaX > 0) {
+        handlePrev();
+      } else {
+        handleNext();
+      }
     }
-    setTouchStartX(null);
+    touchStartPos.current = null;
+  };
+
+  const handleTouchCancel = () => {
+    setIsPaused(false);
+    touchStartPos.current = null;
   };
 
   const handleKeyDown = (e) => {
@@ -2037,6 +2057,7 @@ export function ReviewsSection({ items }) {
       onBlur={() => setIsPaused(false)}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
+      onTouchCancel={handleTouchCancel}
       onKeyDown={handleKeyDown}
       tabIndex={0}
     >
