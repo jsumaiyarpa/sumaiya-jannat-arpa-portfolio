@@ -418,6 +418,28 @@ export function Home() {
     error: portfolioError,
   } = usePortfolioData();
 
+  // Lock background scroll and handle Escape for experience/credential modals
+  const isDetailModalOpen = Boolean(activeExperienceItem || activeCredentialItem);
+  useEffect(() => {
+    if (!isDetailModalOpen) return;
+
+    const handleKey = (e) => {
+      if (e.key === 'Escape') {
+        setActiveExperienceItem(null);
+        setActiveCredentialItem(null);
+      }
+    };
+    window.addEventListener('keydown', handleKey);
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      window.removeEventListener('keydown', handleKey);
+      document.documentElement.style.overflow = '';
+      document.body.style.overflow = '';
+    };
+  }, [isDetailModalOpen]);
+
   const reviewItems = useMemo(() => {
     if (portfolioHasLoaded) {
       return Array.isArray(liveReviews) ? liveReviews.filter((r) => r && r.isPublished !== false) : [];
@@ -1220,16 +1242,16 @@ export function Home() {
 
           {/* Additional GitHub Repositories (Live REST API integration) */}
           <AdditionalGitHubRepos />
-
-          {/* Accessible Project Modal revealing category work */}
-          {activeCategory && (
-            <CategoryProjectModal
-              categoryId={activeCategory}
-              onClose={() => setActiveCategory(null)}
-            />
-          )}
         </div>
       </section>
+
+      {/* Accessible Project Modal revealing category work */}
+      {activeCategory && (
+        <CategoryProjectModal
+          categoryId={activeCategory}
+          onClose={() => setActiveCategory(null)}
+        />
+      )}
 
       {/* 06. REVIEWS SECTION */}
       <section id="reviews" className="page-section section-reviews-clean">

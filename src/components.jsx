@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { site } from './data/site.js';
 import { categories, projects } from './data/projects.js';
@@ -1274,14 +1275,17 @@ export function CategoryProjectModal({ categoryId, onClose }) {
       if (e.key === 'Escape') onClose();
     };
     window.addEventListener('keydown', handleKey);
+    document.documentElement.style.overflow = 'hidden';
     document.body.style.overflow = 'hidden';
+
     return () => {
       window.removeEventListener('keydown', handleKey);
+      document.documentElement.style.overflow = '';
       document.body.style.overflow = '';
     };
   }, [onClose]);
 
-  return (
+  const modalContent = (
     <div
       className="cat-modal-backdrop"
       onClick={onClose}
@@ -1524,6 +1528,10 @@ export function CategoryProjectModal({ categoryId, onClose }) {
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined'
+    ? createPortal(modalContent, document.body)
+    : modalContent;
 }
 
 // -------------------------------------------------------------
